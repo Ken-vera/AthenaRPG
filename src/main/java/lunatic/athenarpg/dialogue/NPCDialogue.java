@@ -143,4 +143,3 @@ public class NPCDialogue {
         return list.get(random.nextInt(list.size()));
     }
 }
-

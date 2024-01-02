@@ -1,6 +1,7 @@
 package lunatic.athenarpg;
 
 import lunatic.athenarpg.data.FileManager;
+import lunatic.athenarpg.db.Database;
 import lunatic.athenarpg.itemlistener.utils.RPGListenerRegister;
 import lunatic.athenarpg.quest.BryzleQuest;
 import lunatic.athenarpg.reward.BoxOpenListener;
@@ -8,12 +9,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,9 +27,11 @@ public class Main extends JavaPlugin implements Listener {
     public List<Quest> availableQuests = new ArrayList<>();
     public List<ActiveQuest> activeQuests = new ArrayList<>();
     RPGListenerRegister rpgRegister = new RPGListenerRegister(this);
-
+    private Database database;
+    private Map<String, Long> cooldowns = new HashMap<>();
+    private FileManager playerDataFileManager;
+    private FileConfiguration config;
     public FileManager fileManager;
-
     BryzleQuest bryzleQuest;
 
     @Override
@@ -34,6 +39,17 @@ public class Main extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new BryzleQuest(this), this);
         getServer().getPluginManager().registerEvents(new BoxOpenListener(this), this);
         getServer().getPluginManager().registerEvents(this, this);
+
+        saveDefaultConfig();
+        this.config = getConfig();
+
+        try {
+            this.database = new Database(this);
+            database.initializeDatabase();
+        } catch (SQLException ex) {
+            System.out.println("Failed to connect to the Database and create Tables!");
+            ex.printStackTrace();
+        }
 
         rpgRegister.registerRPGEventListener();
 
@@ -44,6 +60,8 @@ public class Main extends JavaPlugin implements Listener {
 
         bryzleQuest = new BryzleQuest(this);
         bryzleQuest.setupQuests(); // Initialize available quests
+
+        playerDataFileManager = new FileManager(this);
 
 
     }
@@ -89,14 +107,18 @@ public class Main extends JavaPlugin implements Listener {
             if (args.length > 0) {
                 if (args[0].equalsIgnoreCase("bryzle")) {
                     if (!hasActiveQuest(player)) {
-                        bryzleQuest.startQuest(player);
-                        Bukkit.getScheduler().runTaskLater(this, () -> {
-                            ActiveQuest activeQuest = getActiveQuest(player);
-                            if (activeQuest != null) {
-                                fileManager.getConfig("playerData.yml").set(player.getName() + ".quest", activeQuest.getQuest().getName());
-                                fileManager.getConfig("playerData.yml").save();
-                            }
-                        }, 40L);
+                        if (isCooldownExpired(player.getName())) {
+                            bryzleQuest.startQuest(player);
+                            Bukkit.getScheduler().runTaskLater(this, () -> {
+                                ActiveQuest activeQuest = getActiveQuest(player);
+                                if (activeQuest != null) {
+                                    fileManager.getConfig("playerData.yml").set(player.getName() + ".quest", activeQuest.getQuest().getName());
+                                    fileManager.getConfig("playerData.yml").save();
+                                }
+                            }, 40L);
+                        }else{
+                            player.sendMessage("§cYou're currently on cooldown!");
+                        }
                     } else {
                         player.performCommand("rpgquestcomplete bryzle");
                     }
@@ -110,7 +132,21 @@ public class Main extends JavaPlugin implements Listener {
                         ActiveQuest activeQuest = getActiveQuest(player);
                         if (activeQuest != null) {
                             if (bryzleQuest.playerHasRequiredItems(player, activeQuest)) {
-                                bryzleQuest.completeQuest(player, activeQuest);
+                                if (isCooldownExpired(player.getName())) {
+                                    bryzleQuest.completeQuest(player, activeQuest);
+                                    setCooldown(player.getName());
+                                    database.addReputation(player, 100, 0);
+                                    player.sendMessage("");
+                                    try {
+                                        player.sendMessage("§a+100 Reputation on Bryzle! §7(§b" +database.getPlayerReputation(player.getUniqueId(), "bryzleReputation") +"§7)");
+                                    } catch (SQLException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                    player.sendMessage("");
+                                }
+                                else{
+                                    player.sendMessage("§cYou're currently on cooldown!");
+                                }
                             }
                         }
                     } else {
@@ -203,5 +239,42 @@ public class Main extends JavaPlugin implements Listener {
             return true;
         }
     }
+    private void updateCooldownsInYaml() {
+        for (String playerName : cooldowns.keySet()) {
+            long cooldownEnd = cooldowns.get(playerName);
+            long currentTime = System.currentTimeMillis();
 
+            if (currentTime > cooldownEnd) {
+                // Cooldown has expired, remove from map and save to YAML
+                cooldowns.remove(playerName);
+                saveCooldownToYaml(playerName, 0);
+            } else {
+                // Calculate remaining cooldown in minutes
+                long remainingCooldownMinutes = (cooldownEnd - currentTime) / (60 * 1000);
+                saveCooldownToYaml(playerName, remainingCooldownMinutes);
+            }
+        }
+    }
+
+    private void saveCooldownToYaml(String playerName, long remainingCooldownMinutes) {
+        playerDataFileManager.getConfig("playerData.yml").set(playerName + ".cooldown", remainingCooldownMinutes);
+        playerDataFileManager.saveConfig("playerData.yml");
+    }
+
+    private boolean isCooldownExpired(String playerName) {
+        if (cooldowns.containsKey(playerName)) {
+            long cooldownEnd = cooldowns.get(playerName);
+            long currentTime = System.currentTimeMillis();
+            return currentTime > cooldownEnd;
+        }
+        return true;
+    }
+
+    private void setCooldown(String playerName) {
+        // Set cooldown duration (5 minutes in milliseconds)
+        long cooldownDuration = 5 * 60 * 1000;
+        long cooldownEnd = System.currentTimeMillis() + cooldownDuration;
+        cooldowns.put(playerName, cooldownEnd);
+        saveCooldownToYaml(playerName, 5);
+    }
 }

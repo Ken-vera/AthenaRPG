@@ -55,6 +55,7 @@ public class Taser implements Listener {
         String rpgName = utils.getRPGName(player);
 
         if (rpgName.contains("Taser") && event.getAction().toString().contains("RIGHT_CLICK")) {
+            event.setCancelled(true);
             // Check if the RPG level is at least 2 (assuming Long Range Electricity I is at level 2)
             int level = utils.getRPGLevel(player);
 
@@ -86,7 +87,7 @@ public class Taser implements Listener {
                         }
                     }
                 }
-                int cooldown = Math.max(1, 15 - (level - 2) * 2); // Decrease cooldown by 2 seconds for each level above 2
+                int cooldown = 15; // Decrease cooldown by 2 seconds for each level above 2
                 cooldownManager.setCooldown(player, "Taser", cooldown);
             }
             else {
@@ -95,5 +96,5 @@ public class Taser implements Listener {
 
         }
     }
-    
+
 }
