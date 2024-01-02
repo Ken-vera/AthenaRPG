@@ -1,0 +1,10 @@
+name: AthenaRPG
+version: '${project.version}'
+main: lunatic.athenarpg.Main
+api-version: '1.20'
+commands:
+  rpgquest:
+    description: Quest
+    permission: op
+  rpgquestcomplete:
+    description: Quest Complete
