@@ -11,9 +11,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
 
+import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 public class BryzleQuest implements Listener {
 
@@ -41,6 +44,31 @@ public class BryzleQuest implements Listener {
         plugin.availableQuests.add(new Main.Quest("[EASY] [Bryzle] Chicken Herder", "Collect 20 eggs from chickens", createMaterialMap(Material.EGG, 20)));
         plugin.availableQuests.add(new Main.Quest("[EASY] [Bryzle] Green Thumb", "Plant and grow 30 saplings", createMaterialMap(Material.OAK_SAPLING, 30)));
         plugin.availableQuests.add(new Main.Quest("[EASY] [Bryzle] [Clairmmont] Tree Puncher", "Collect 32 Oak Log", createMaterialMap(Material.OAK_LOG, 32)));
+        plugin.availableQuests.add(new Main.Quest("[EASY] [Bryzle] Stone Collector", "Collect 20 cobblestones and 10 coal",
+                createMaterialMap(Material.COBBLESTONE, 20, Material.COAL, 10)));
+        plugin.availableQuests.add(new Main.Quest("[EASY] [Bryzle] Explorer's Kit", "Gather 10 sticks, 5 feathers, and 5 leather",
+                createMaterialMap(Material.STICK, 10, Material.FEATHER, 5, Material.LEATHER, 5)));
+        plugin.availableQuests.add(new Main.Quest("[EASY] [Bryzle] Miner's Bounty", "Mine 15 iron ore and 10 redstone",
+                createMaterialMap(Material.IRON_ORE, 15, Material.REDSTONE, 10)));
+        plugin.availableQuests.add(new Main.Quest("[EASY] [Bryzle] Herbalist's Collection", "Collect 15 wheat, 10 sugar canes, and 5 melons",
+                createMaterialMap(Material.WHEAT, 15, Material.SUGAR_CANE, 10, Material.MELON, 5)));
+        plugin.availableQuests.add(new Main.Quest("[EASY] [Bryzle] Toolsmith Apprentice", "Craft a wooden pickaxe, a wooden axe, and a wooden shovel",
+                createMaterialMap(Material.WOODEN_PICKAXE, 1, Material.WOODEN_AXE, 1, Material.WOODEN_SHOVEL, 1)));
+        plugin.availableQuests.add(new Main.Quest("[EASY] [Bryzle] Potion Brewer", "Collect 3 water bottles, 2 nether wart, and 1 blaze rod",
+                createMaterialMap(Material.GLASS_BOTTLE, 3, Material.NETHER_WART, 2, Material.BLAZE_ROD, 1)));
+
+        plugin.availableQuests.add(new Main.Quest("[EASY] [Bryzle] Desert Explorer", "Gather 15 sand blocks, 10 cacti, and 5 glass bottles",
+                createMaterialMap(Material.SAND, 15, Material.CACTUS, 10, Material.GLASS_BOTTLE, 5)));
+
+        plugin.availableQuests.add(new Main.Quest("[EASY] [Bryzle] Archer's Arsenal", "Collect 20 arrows, 10 bones, and 5 feathers",
+                createMaterialMap(Material.ARROW, 20, Material.BONE, 10, Material.FEATHER, 5)));
+
+        plugin.availableQuests.add(new Main.Quest("[EASY] [Bryzle] Mushroom Connoisseur", "Gather 10 red mushrooms, 10 brown mushrooms, and 5 bowls",
+                createMaterialMap(Material.RED_MUSHROOM, 10, Material.BROWN_MUSHROOM, 10, Material.BOWL, 5)));
+
+        plugin.availableQuests.add(new Main.Quest("[EASY] [Bryzle] Farmer's Market", "Harvest 30 carrots, 20 potatoes, and 10 pumpkins",
+                createMaterialMap(Material.CARROT, 30, Material.POTATO, 20, Material.PUMPKIN, 10)));
+
 
         // MEDIUM QUEST
         plugin.availableQuests.add(new Main.Quest("[MEDIUM] [Bryzle] Lost Miner", "Collect 20 Diamond, 20 Redstone, 20 Gold Ingot",
@@ -86,7 +114,7 @@ public class BryzleQuest implements Listener {
         plugin.availableQuests.add(new Main.Quest("[EXPERT] [Bryzle] Redstone Engineer", "Create a fully automated redstone contraption",
                 createMaterialMap(Material.REDSTONE_BLOCK, 20, Material.DROPPER, 10, Material.HOPPER, 10,
                         Material.PISTON, 10, Material.OBSERVER, 5, Material.REPEATER, 10)));
-        plugin.availableQuests.add(new Main.Quest("[EXPERT] [Bryzle] Slime Scientist", "Collect 350 slimeballs", createMaterialMap(Material.SLIME_BALL, 350)));
+        plugin.availableQuests.add(new Main.Quest("[EXPERT] [Bryzle] Slime Scientist", "Collect 250 slimeballs", createMaterialMap(Material.SLIME_BALL, 250)));
         plugin.availableQuests.add(new Main.Quest("[EXPERT] [Bryzle] Potion of Flight", "Craft a potion of slow falling and elytra",
                 createMaterialMap(Material.POTION, 1, Material.PHANTOM_MEMBRANE, 5, Material.ELYTRA, 1)));
         plugin.availableQuests.add(new Main.Quest("[EXPERT] [Bryzle] Guardian of the Sea", "Create an underwater base",
@@ -160,11 +188,84 @@ public class BryzleQuest implements Listener {
     private Main.Quest getRandomQuest() {
         if (!plugin.availableQuests.isEmpty()) {
             Random random = new Random();
-            return plugin.availableQuests.get(random.nextInt(plugin.availableQuests.size()));
+            double probability = random.nextDouble(); // Random number between 0 and 1
+
+            // Adjust the probabilities based on quest difficulty
+            if (probability < 0.6) {
+                // 60% chance for easy quests
+                return getRandomQuestByDifficulty("EASY");
+            } else if (probability < 0.8) {
+                // 20% chance for medium quests
+                return getRandomQuestByDifficulty("MEDIUM");
+            } else if (probability < 0.95) {
+                // 15% chance for hard quests
+                return getRandomQuestByDifficulty("HARD");
+            } else {
+                // 5% chance for expert quests
+                return getRandomQuestByDifficulty("EXPERT");
+            }
         }
         return null;
     }
 
+    private Main.Quest getRandomQuestByDifficulty(String difficulty) {
+        List<Main.Quest> filteredQuests = plugin.availableQuests.stream()
+                .filter(quest -> quest.getName().contains("[" + difficulty + "]"))
+                .collect(Collectors.toList());
+
+        if (!filteredQuests.isEmpty()) {
+            Random random = new Random();
+            return filteredQuests.get(random.nextInt(filteredQuests.size()));
+        }
+
+        return null;
+    }
+
+
+    public void skipQuest(Player player, Main.ActiveQuest activeQuest){
+        BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+
+        String thankYou = NPCDialogue.getQuestCompletedMessage();
+        scheduler.runTaskLater(plugin, () -> player.sendMessage("§a§lBryzle §7» §f" + thankYou + "\n§a"), 0L);
+        scheduler.runTaskLater(plugin, () -> player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_AMBIENT, 100f, 0f), 0L);
+        if (activeQuest.getQuest().getName().contains("[EASY]")){
+            scheduler.runTaskLater(plugin, () -> player.sendMessage("§a§lBryzle §7» §fSeperti janjiku sebelumnya, aku akan memberikan §a§lCommon Chest §fkepadamu! Terimalah ini!\n§a"), 50L);
+            scheduler.runTaskLater(plugin, () -> player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_AMBIENT, 100f, 0f), 50L);
+        }
+        else if (activeQuest.getQuest().getName().contains("[MEDIUM]")) {
+            scheduler.runTaskLater(plugin, () -> player.sendMessage("§a§lBryzle §7» §fSeperti janjiku sebelumnya, aku akan memberikan §9§lRare Chest §fkepadamu! Terimalah ini!\n§a"), 50L);
+            scheduler.runTaskLater(plugin, () -> player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_AMBIENT, 100f, 0f), 50L);
+        }
+        else if (activeQuest.getQuest().getName().contains("[HARD]")) {
+            scheduler.runTaskLater(plugin, () -> player.sendMessage("§a§lBryzle §7» §fSeperti janjiku sebelumnya, aku akan memberikan §5§lEpic Chest §fkepadamu! Terimalah ini!\n§a"), 50L);
+            scheduler.runTaskLater(plugin, () -> player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_AMBIENT, 100f, 0f), 50L);
+        }
+        else if (activeQuest.getQuest().getName().contains("[EXPERT]")) {
+            scheduler.runTaskLater(plugin, () -> player.sendMessage("§a§lBryzle §7» §fSeperti janjiku sebelumnya, aku akan memberikan §e§lLegendary Chest §fkepadamu! Terimalah ini!\n§a"), 50L);
+            scheduler.runTaskLater(plugin, () -> player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_AMBIENT, 100f, 0f), 50L);
+        }
+        if (activeQuest.getQuest().getName().contains("[EASY]")){
+            rewardManager.giveRPGBoxReward(player, "COMMON_BOX");
+        }
+        else if (activeQuest.getQuest().getName().contains("[MEDIUM]")){
+            rewardManager.giveRPGBoxReward(player, "RARE_BOX");
+        }
+        else if (activeQuest.getQuest().getName().contains("[HARD]")){
+            rewardManager.giveRPGBoxReward(player, "EPIC_BOX");
+        }
+        else if (activeQuest.getQuest().getName().contains("[EXPERT]")){
+            rewardManager.giveRPGBoxReward(player, "LEGENDARY_BOX");
+        }
+        plugin.database.addReputation(player, 100, 0);
+        player.sendMessage("");
+        try {
+            player.sendMessage("§a+100 Reputation on Bryzle! §7(§b" +plugin.database.getPlayerReputation(player.getUniqueId(), "bryzleReputation") +"§7)");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        player.sendMessage("");
+        plugin.activeQuests.remove(activeQuest);
+    }
 
     public void completeQuest(Player player, Main.ActiveQuest activeQuest) {
         Map<Material, Integer> requiredMaterials = activeQuest.getQuest().getRequiredMaterials();
@@ -218,6 +319,14 @@ public class BryzleQuest implements Listener {
         else if (activeQuest.getQuest().getName().contains("[EXPERT]")){
             rewardManager.giveRPGBoxReward(player, "LEGENDARY_BOX");
         }
+        plugin.database.addReputation(player, 100, 0);
+        player.sendMessage("");
+        try {
+            player.sendMessage("§a+100 Reputation on Bryzle! §7(§b" +plugin.database.getPlayerReputation(player.getUniqueId(), "bryzleReputation") +"§7)");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        player.sendMessage("");
         plugin.activeQuests.remove(activeQuest);
     }
     private boolean areItemsVanilla(Player player, Map<Material, Integer> requiredMaterials) {

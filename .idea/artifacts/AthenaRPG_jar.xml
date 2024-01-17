@@ -3,6 +3,10 @@
     <output-path>$PROJECT_DIR$/../localhost/plugins</output-path>
     <root id="archive" name="AthenaRPG.jar">
       <element id="module-output" name="AthenaRPG" />
+      <element id="library" level="project" name="Maven: com.google.errorprone:error_prone_annotations:2.21.1" />
+      <element id="library" level="project" name="Maven: org.checkerframework:checker-qual:3.37.0" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/github/ben-manes/caffeine/caffeine/3.1.8/caffeine-3.1.8.jar" path-in-jar="/" />
+      <element id="library" level="project" name="Maven: com.github.ben-manes.caffeine:caffeine:3.1.8" />
     </root>
   </artifact>
 </component>

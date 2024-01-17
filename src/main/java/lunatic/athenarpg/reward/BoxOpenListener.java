@@ -23,20 +23,33 @@ public class BoxOpenListener implements Listener {
         this.plugin = plugin;
     }
 
-    private static final List<String> COMMON_REWARD = Arrays.asList(
+    public List<String> COMMON_REWARD = Arrays.asList(
             "COBBLESTONE_FRAGMENT",
-            "SHARP_INGOT"
+            "SHARP_INGOT",
+            "TASER_BATTERY",
+            "OBSIDIAN_CHUNK"
     );
-    private static final List<String> RARE_REWARD = Arrays.asList(
-            "HEART_POWER"
+    public List<String> RARE_REWARD = Arrays.asList(
+            "HEART_POWER",
+            "POSEIDON_SCRAP",
+            "ANCESTRAL_PAPER",
+            "VINDICATOR_EYES"
     );
 
-    private static final List<String> EPIC_REWARD = Arrays.asList(
-            "ENCHANTED_FARMING_BLOCK"
+    public List<String> EPIC_REWARD = Arrays.asList(
+            "ENCHANTED_FARMING_BLOCK",
+            "UNIDENTIFIED_14"
     );
 
-    private static final List<String> LEGENDARY_REWARD = Arrays.asList(
-            "ENCHANTED_FARMING_BLOCK"
+    public List<String> LEGENDARY_REWARD = Arrays.asList(
+            "ENCHANTED_FARMING_BLOCK",
+            "SPEEDY_POWDER",
+            "EMPOWERED_WITHER_SKULL",
+            "RED_CROWN"
+    );
+
+    public List<String> DUNGEON_KEY = Arrays.asList(
+            "dungeon"
     );
 
     private static final Random random = new Random();
@@ -52,7 +65,8 @@ public class BoxOpenListener implements Listener {
                     if (displayName.equals("§a§lCommon Box §7(§aQuest§7)")
                             || displayName.equals("§9§lRare Box §7(§aQuest§7)")
                             || displayName.equals("§5§lEpic Box §7(§aQuest§7)")
-                            || displayName.equals("§e§lLegendary Box §7(§aQuest§7)")) {
+                            || displayName.equals("§e§lLegendary Box §7(§aQuest§7)")
+                            || displayName.equals("§d§lDungeon Coupon")) {
                         ConsoleCommandSender consoleCommandSender = Bukkit.getConsoleSender();
                         Player player = event.getPlayer();
                         event.setCancelled(true);
@@ -68,16 +82,16 @@ public class BoxOpenListener implements Listener {
 
                         // Continue with the reward logic
                         if (displayName.equals("§a§lCommon Box §7(§aQuest§7)")) {
-                            int randomAmount = random.nextInt(15) + 1; // 1 to 15 (inclusive)
+                            int randomAmount = random.nextInt(10) + 1; // 1 to 10 (inclusive)
                             Bukkit.dispatchCommand(consoleCommandSender, "mi give MATERIAL " + getRandomElement(COMMON_REWARD) + " " + player.getName() + " " + randomAmount);
                             player.playSound(player, Sound.ITEM_BOTTLE_FILL_DRAGONBREATH, 100f, 0f);
                         } else if (displayName.equals("§9§lRare Box §7(§aQuest§7)")) {
-                            int randomAmount = random.nextInt(10) + 1; // 1 to 10 (inclusive)
+                            int randomAmount = random.nextInt(5) + 1; // 1 to 5 (inclusive)
                             Bukkit.dispatchCommand(consoleCommandSender, "mi give MATERIAL " + getRandomElement(RARE_REWARD) + " " + player.getName() + " " + randomAmount);
                             Bukkit.broadcastMessage("§e" + player.getName() + " §fbaru saja membuka §9§lRare Box §7(§aQuest§7)§f!");
                             playSoundToAllPlayer(Sound.ITEM_BOTTLE_FILL_DRAGONBREATH, 100f, 0f);
                         } else if (displayName.equals("§5§lEpic Box §7(§aQuest§7)")) {
-                            int randomAmount = random.nextInt(5) + 1; // 1 to 5 (inclusive)
+                            int randomAmount = random.nextInt(3) + 1; // 1 to 3 (inclusive)
                             Bukkit.dispatchCommand(consoleCommandSender, "mi give MATERIAL " + getRandomElement(EPIC_REWARD) + " " + player.getName() + " " + randomAmount);
                             Bukkit.broadcastMessage("§e" + player.getName() + " §fbaru saja membuka §5§lEpic Box §7(§aQuest§7)§f!");
                             playSoundToAllPlayer(Sound.ITEM_BOTTLE_FILL_DRAGONBREATH, 100f, 0f);
@@ -88,7 +102,11 @@ public class BoxOpenListener implements Listener {
                             Bukkit.dispatchCommand(consoleCommandSender, "mi give MATERIAL " + legendaryItem + " " + player.getName() + " " + randomAmount);
                             Bukkit.broadcastMessage("§e" + player.getName() + " §fbaru saja membuka §e§lLegendary Box §7(§aQuest§7)§f dan mendapatkan §e" + formattedItemName + "§f!");
                             playSoundToAllPlayer(Sound.ENTITY_ENDER_DRAGON_GROWL, 100f, 0f);
-
+                        } else if (displayName.equals("§d§lDungeon Coupon")) {
+                            int randomAmount = random.nextInt(2) + 1; // 1 (inclusive)
+                            String itemDrop = getRandomElement(DUNGEON_KEY);
+                            Bukkit.dispatchCommand(consoleCommandSender, "excellentcrates key give " + player.getName() + " " + itemDrop + " " + randomAmount);
+                            player.playSound(player, Sound.ENTITY_BLAZE_BURN, 10f, 1f);
                         }
                     }
                 }
@@ -109,7 +127,7 @@ public class BoxOpenListener implements Listener {
         }
     }
 
-    private static String getRandomElement(List<String> list) {
+    public String getRandomElement(List<String> list) {
         return list.get(random.nextInt(list.size()));
     }
 }

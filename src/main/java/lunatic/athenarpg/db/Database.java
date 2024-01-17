@@ -86,17 +86,24 @@ public class Database {
 
         try {
             int currentBryzleReputation = getPlayerReputation(playerUUID, "bryzleReputation");
-            int newBryzleReputation = currentBryzleReputation + bryzleAmount;
-
             int currentArticReputation = getPlayerReputation(playerUUID, "articReputation");
-            int newArticReputation = currentArticReputation + articAmount;
 
-            updatePlayerReputation(playerUUID, newBryzleReputation, newArticReputation);
+            if (currentBryzleReputation == 0 && currentArticReputation == 0) {
+                // Player data not found, insert new data
+                createPlayerReputation(playerUUID, player.getName(), bryzleAmount, articAmount);
+            } else {
+                // Player data found, update existing data
+                int newBryzleReputation = currentBryzleReputation + bryzleAmount;
+                int newArticReputation = currentArticReputation + articAmount;
+
+                updatePlayerReputation(playerUUID, newBryzleReputation, newArticReputation);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             // Handle the exception appropriately (e.g., logging, sending a message to the player)
         }
     }
+
 
     public int getPlayerReputation(UUID playerUUID, String reputationType) throws SQLException {
         Connection connection = getConnection();

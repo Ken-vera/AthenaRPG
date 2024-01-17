@@ -1,12 +1,23 @@
 package lunatic.athenarpg;
 
+import lunatic.athenarpg.blacksmith.BlacksmithCommand;
 import lunatic.athenarpg.data.FileManager;
 import lunatic.athenarpg.db.Database;
+import lunatic.athenarpg.dungeondrops.DropListener;
+import lunatic.athenarpg.handler.SignEditorHandler;
 import lunatic.athenarpg.itemlistener.utils.RPGListenerRegister;
+import lunatic.athenarpg.itemlistener.utils.SlimefunHandler;
 import lunatic.athenarpg.quest.BryzleQuest;
 import lunatic.athenarpg.reward.BoxOpenListener;
+import lunatic.athenarpg.stats.PlayerStatus;
+import lunatic.athenarpg.stats.StatusListener;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -14,31 +25,50 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Main extends JavaPlugin implements Listener {
 
     public List<Quest> availableQuests = new ArrayList<>();
     public List<ActiveQuest> activeQuests = new ArrayList<>();
     RPGListenerRegister rpgRegister = new RPGListenerRegister(this);
-    private Database database;
+    public Database database;
     private Map<String, Long> cooldowns = new HashMap<>();
     private FileManager playerDataFileManager;
     private FileConfiguration config;
     public FileManager fileManager;
     BryzleQuest bryzleQuest;
 
+    public Map<UUID, PlayerStatus> playerStatusMap = new HashMap<>();
+
+    private Economy economy;
+
     @Override
     public void onEnable() {
         getServer().getPluginManager().registerEvents(new BryzleQuest(this), this);
         getServer().getPluginManager().registerEvents(new BoxOpenListener(this), this);
+        getServer().getPluginManager().registerEvents(new SignEditorHandler(this), this);
+        getServer().getPluginManager().registerEvents(new SlimefunHandler(this), this);
+        getServer().getPluginManager().registerEvents(new DropListener(this), this);
+        getServer().getPluginManager().registerEvents(new StatusListener(this), this);
         getServer().getPluginManager().registerEvents(this, this);
+
+        getCommand("blacksmithrepair").setExecutor(new BlacksmithCommand(this));
+
+        startStatusUpdateTask();
+
+        if (!setupEconomy()) {
+            getLogger().severe("Vault not found! Disabling plugin...");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
 
         saveDefaultConfig();
         this.config = getConfig();
@@ -131,21 +161,33 @@ public class Main extends JavaPlugin implements Listener {
                     if (hasActiveQuest(player)) {
                         ActiveQuest activeQuest = getActiveQuest(player);
                         if (activeQuest != null) {
+                            ItemStack itemInMainHand = player.getInventory().getItemInMainHand();
+                            ItemMeta itemMeta = itemInMainHand.getItemMeta();
+
+                            if (itemMeta != null && itemMeta.hasDisplayName()) {
+                                String itemName = ChatColor.stripColor(itemMeta.getDisplayName());
+
+                                if (itemName.equals("Bryzle Quest Skipper")) {
+                                    bryzleQuest.skipQuest(player, activeQuest);
+                                    setCooldown(player.getName());
+                                    Bukkit.broadcastMessage("");
+                                    Bukkit.broadcastMessage("§e" + player.getName() + " §fmelakukan §dSkip Quest " + activeQuest.getQuest().getName());
+                                    Bukkit.broadcastMessage("");
+                                    for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                                        onlinePlayer.playSound(onlinePlayer.getLocation(), Sound.ENTITY_WITHER_SHOOT, 50f, 1f);
+                                    }
+                                    itemInMainHand.setAmount(itemInMainHand.getAmount() - 1);
+                                    fileManager.getConfig("playerData.yml").set(player.getName() + ".quest", null);
+                                    fileManager.getConfig("playerData.yml").save();
+                                    return false;
+                                }
+                            }
                             if (bryzleQuest.playerHasRequiredItems(player, activeQuest)) {
                                 if (isCooldownExpired(player.getName())) {
                                     bryzleQuest.completeQuest(player, activeQuest);
                                     setCooldown(player.getName());
-                                    database.addReputation(player, 100, 0);
-                                    player.sendMessage("");
-                                    try {
-                                        player.sendMessage("§a+100 Reputation on Bryzle! §7(§b" +database.getPlayerReputation(player.getUniqueId(), "bryzleReputation") +"§7)");
-                                    } catch (SQLException e) {
-                                        throw new RuntimeException(e);
-                                    }
-                                    player.sendMessage("");
-                                }
-                                else{
-                                    player.sendMessage("§cYou're currently on cooldown!");
+                                    fileManager.getConfig("playerData.yml").set(player.getName() + ".quest", null);
+                                    fileManager.getConfig("playerData.yml").save();
                                 }
                             }
                         }
@@ -276,5 +318,102 @@ public class Main extends JavaPlugin implements Listener {
         long cooldownEnd = System.currentTimeMillis() + cooldownDuration;
         cooldowns.put(playerName, cooldownEnd);
         saveCooldownToYaml(playerName, 5);
+    }
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+
+        economy = rsp.getProvider();
+        return economy != null;
+    }
+
+    public Economy getEconomy() {
+        return economy;
+    }
+    public void startStatusUpdateTask() {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    if (player != null && player.isOnline()) {
+                        UUID playerId = player.getUniqueId();
+                        updatePlayerStatus(player);
+                    }
+                }
+            }
+        }.runTaskTimer(this, 0L, 10L);
+        new BukkitRunnable(){
+            @Override
+            public void run(){
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    if (player != null && player.isOnline()) {
+                        UUID playerId = player.getUniqueId();
+                        PlayerStatus playerStatus = playerStatusMap.get(playerId);
+                        int maxMana = playerStatus.getMaxMana();
+                        int mana = playerStatus.getCurrentMana();
+                        int vitality = playerStatus.getCurrentVitality();
+                        int manaRegenPerSecond = (int) (maxMana * 0.2);
+                        int newMana = Math.min(maxMana, mana + manaRegenPerSecond);
+                        if (mana < maxMana) {
+                            playerStatus.setCurrentMana(newMana);
+                        }
+                        if (mana > maxMana){
+                            playerStatus.setCurrentMana(playerStatus.getMaxMana());
+                        }
+                        if (maxMana < 100){
+                            playerStatus.setMaxMana(100);
+                        }
+                        if (mana < 0){
+                            playerStatus.setCurrentMana(0);
+                        }
+
+                        if (playerStatus.getMaxVitality() < 100){
+                            playerStatus.setMaxVitality(100);
+                        }
+                        if (vitality < playerStatus.getMaxVitality()){
+                            playerStatus.setCurrentVitality(playerStatus.getCurrentVitality() + 1);
+                        }
+                        playerStatus.setMaxHealth((int) player.getMaxHealth());
+                        playerStatus.setHealth((int) player.getHealth());
+                    }
+                }
+            }
+        }.runTaskTimer(this, 0L, 35L);
+    }
+
+    public void updatePlayerStatus(Player player) {
+        UUID playerId = player.getUniqueId();
+        PlayerStatus playerStatus = playerStatusMap.get(playerId);
+
+        if (playerStatus == null) {
+            playerStatus = new PlayerStatus(player, (int) player.getMaxHealth(), (int) player.getHealth(), 100, 100);
+            playerStatusMap.put(playerId, playerStatus);
+        }
+
+        int currentHealth = playerStatus.getCurrentHealth();
+        int maxHealth = playerStatus.getMaxHealth();
+        int maxMana = playerStatus.getMaxMana();
+        int mana = playerStatus.getCurrentMana();
+        int vitality = playerStatus.getCurrentVitality();
+
+        if (mana > maxMana){
+            playerStatus.setCurrentMana(playerStatus.getMaxMana());
+        }
+
+
+        String actionBarMessage = "    §c" + currentHealth + "/" + maxHealth + "❤" +
+                "    §7§l|    §b" + mana + "/" + maxMana + " ✤ " +
+                "    §7§l|    §4" + vitality + "% Vitality♨";
+
+        sendActionBarMessage(player, actionBarMessage);
+    }
+    public static void sendActionBarMessage(Player player, String message) {
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
     }
 }

@@ -1,41 +1,62 @@
 package lunatic.athenarpg.itemlistener.utils;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import lunatic.athenarpg.Main;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class CooldownManager {
 
     private Main plugin;
+    RPGUtils utils = new RPGUtils();
 
     public CooldownManager(Main plugin){
         this.plugin = plugin;
     }
 
-    private final Map<String, Long> cooldowns = new HashMap<>();
+    private final Cache<String, Cache<UUID, Long>> cooldowns = Caffeine.newBuilder().build();
 
-    public boolean isOnCooldown(Player player, String itemName) {
-        String key = getKey(player, itemName);
-        return cooldowns.containsKey(key) && cooldowns.get(key) > System.currentTimeMillis();
+    public void setCooldown(String cooldownType, int cooldownTime, UUID uuid) {
+        Cache<UUID, Long> newCooldownMap = Caffeine.newBuilder()
+                .expireAfterWrite(cooldownTime, TimeUnit.SECONDS)
+                .build();
+        newCooldownMap.put(uuid, System.currentTimeMillis());
+        cooldowns.put(cooldownType, newCooldownMap);
     }
 
-    public void setCooldown(Player player, String itemName, int seconds) {
-        String key = getKey(player, itemName);
-        long cooldownExpiration = System.currentTimeMillis() + seconds * 1000L;
-        cooldowns.put(key, cooldownExpiration);
+    public Long getCooldown(String cooldownType, UUID uuid) {
+        Cache<UUID, Long> cooldownMap = cooldowns.getIfPresent(cooldownType);
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                cooldowns.remove(key);
-            }
-        }.runTaskLater(plugin, seconds * 20L); // Run once after the specified seconds
+        if (cooldownMap != null) {
+            return cooldownMap.getIfPresent(uuid);
+        }
+        return null;
     }
 
-    private String getKey(Player player, String itemName) {
-        return player.getName() + ":" + itemName; // You can use a better key generation logic if needed
+    public void resetCooldown(String cooldownType, UUID uuid) {
+        Cache<UUID, Long> cooldownMap = cooldowns.getIfPresent(cooldownType);
+
+        if (cooldownMap != null) {
+            cooldownMap.invalidate(uuid);
+        }
+    }
+    public void sendCooldownMessage(Player player, String rpgName, int cooldownTime) {
+        Long cooldown = getCooldown(rpgName, player.getUniqueId());
+        player.sendMessage(ChatColor.RED + rpgName + " still on " + TimeUnit.MILLISECONDS.toSeconds((cooldownTime * 1000) - (System.currentTimeMillis() - cooldown)) + "s cooldown!");
+    }
+
+    public int getCooldownInteger(String cooldownType, UUID uuid) {
+        Long remainingCooldown = getCooldown(cooldownType, uuid);
+
+        if (remainingCooldown != null) {
+            long currentTime = System.currentTimeMillis();
+            int secondsRemaining = (int) TimeUnit.MILLISECONDS.toSeconds(remainingCooldown - currentTime);
+            return Math.max(0, secondsRemaining); // Ensure non-negative value
+        }
+        return 0; // Return 0 if no cooldown is found
     }
 }
