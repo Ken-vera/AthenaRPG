@@ -103,7 +103,7 @@ public class RPGUtils {
         return getRPGLevel(boots);
     }
     public String getRPGNameInHand(Player player) {
-        ItemStack itemInHand = player.getItemInHand();
+        ItemStack itemInHand = player.getInventory().getItemInMainHand();
         return getRPGName(itemInHand);
     }
     public String getRPGNameInOffHand(Player player) {
@@ -175,10 +175,10 @@ public class RPGUtils {
             return false;
         }
 
-        if (!helmetName.contains(name) && !chestplateName.contains(name) && !leggingsName.contains(name) && !bootsName.contains(name)){
-            return false;
+        if (helmetName.contains(name) && chestplateName.contains(name) && leggingsName.contains(name) && bootsName.contains(name)){
+            return true;
         }
 
-        return true;
+        return false;
     }
 }

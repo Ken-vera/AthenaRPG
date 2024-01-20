@@ -42,10 +42,21 @@ public class BoxOpenListener implements Listener {
     );
 
     public List<String> LEGENDARY_REWARD = Arrays.asList(
-            "ENCHANTED_FARMING_BLOCK",
+            "SHINY_FARMING_BLOCK",
             "SPEEDY_POWDER",
             "EMPOWERED_WITHER_SKULL",
+            "DRAGOPTICS_LOST_EYES",
             "RED_CROWN"
+    );
+
+    public List<String> ESSENCE_REWARD = Arrays.asList(
+            "SHADOW_ESSENCE",
+            "CELESTIAL_ESSENCE",
+            "ASTRAL_ESSENCE",
+            "BLOODMOON_ESSENCE",
+            "CRYSTALINE_ESSENCE",
+            "NEBULA_ESSENCE",
+            "EMBERWIND_ESSENCE"
     );
 
     public List<String> DUNGEON_KEY = Arrays.asList(
@@ -66,7 +77,8 @@ public class BoxOpenListener implements Listener {
                             || displayName.equals("§9§lRare Box §7(§aQuest§7)")
                             || displayName.equals("§5§lEpic Box §7(§aQuest§7)")
                             || displayName.equals("§e§lLegendary Box §7(§aQuest§7)")
-                            || displayName.equals("§d§lDungeon Coupon")) {
+                            || displayName.equals("§d§lDungeon Coupon")
+                            || displayName.equals("§b§lEssence Box")) {
                         ConsoleCommandSender consoleCommandSender = Bukkit.getConsoleSender();
                         Player player = event.getPlayer();
                         event.setCancelled(true);
@@ -107,6 +119,13 @@ public class BoxOpenListener implements Listener {
                             String itemDrop = getRandomElement(DUNGEON_KEY);
                             Bukkit.dispatchCommand(consoleCommandSender, "excellentcrates key give " + player.getName() + " " + itemDrop + " " + randomAmount);
                             player.playSound(player, Sound.ENTITY_BLAZE_BURN, 10f, 1f);
+                        } else if (displayName.equals("§b§lEssence Box")) {
+                            int randomAmount = random.nextInt(16) + 8;
+                            String itemDrop = getRandomElement(ESSENCE_REWARD);
+                            String formattedItemName = formatItemName(itemDrop);
+                            Bukkit.dispatchCommand(consoleCommandSender, "mi give ESSENCE " + itemDrop + " " + player.getName() + " " + randomAmount);
+                            Bukkit.broadcastMessage("§e" + player.getName() + " §fbaru saja membuka §b§lEssence Box §fdan mendapatkan §e" + formattedItemName + "§f!");
+                            playSoundToAllPlayer(Sound.ITEM_BOTTLE_FILL_DRAGONBREATH, 100f, 0f);
                         }
                     }
                 }

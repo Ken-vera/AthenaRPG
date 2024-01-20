@@ -100,9 +100,21 @@ public class StatusListener implements Listener {
         // Check if the held item is armor
         if (newHeldItem != null && isArmor(newHeldItem.getType())) {
             // Do nothing if it's armor
+            if (lastMaxManaValues.containsKey(player.getUniqueId())) {
+                int lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
+                setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
+                lastMaxManaValues.remove(player.getUniqueId()); // Remove the entry for the player
+            }
             return;
         }
-
+        if (newHeldItem == null){
+            if (lastMaxManaValues.containsKey(player.getUniqueId())) {
+                int lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
+                setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
+                lastMaxManaValues.remove(player.getUniqueId()); // Remove the entry for the player
+            }
+            return;
+        }
         if (newHeldItem == null || newHeldItem.getType() == Material.AIR) {
             if (lastMaxManaValues.containsKey(player.getUniqueId())) {
                 int lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
@@ -111,6 +123,21 @@ public class StatusListener implements Listener {
             }
             return;
         }
+        else{
+            if (lastMaxManaValues.containsKey(player.getUniqueId())) {
+                int lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
+                setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
+                lastMaxManaValues.remove(player.getUniqueId()); // Remove the entry for the player
+            }
+        }
+        if (currentHeldItem != newHeldItem){
+            if (lastMaxManaValues.containsKey(player.getUniqueId())) {
+                int lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
+                setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
+                lastMaxManaValues.remove(player.getUniqueId()); // Remove the entry for the player
+            }
+        }
+
 
         ItemConstructor itemConstructor = new ItemConstructor();
         int newMaxManaValue = itemConstructor.getMaxMana(newHeldItem);
@@ -136,7 +163,17 @@ public class StatusListener implements Listener {
         PlayerStatus playerStatus = getPlayerStatus(player);
 
         if (newHeldItem != null && isArmor(newHeldItem.getType())) {
+            if (lastMaxManaValues.containsKey(player.getUniqueId())) {
+                int lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
+                setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
+                lastMaxManaValues.remove(player.getUniqueId()); // Remove the entry for the player
+            }
             return;
+        }
+        if (lastMaxManaValues.containsKey(player.getUniqueId())) {
+            int lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
+            setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
+            lastMaxManaValues.remove(player.getUniqueId()); // Remove the entry for the player
         }
 
         if (event.getMainHandItem() != null && event.getOffHandItem().getType().equals(Material.AIR)) {
@@ -152,7 +189,11 @@ public class StatusListener implements Listener {
 
         } else {
             // Player is swapping with non-affected items
-            handleMaxManaChange(player, playerStatus, newHeldItem);
+            if (lastMaxManaValues.containsKey(player.getUniqueId())) {
+                int lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
+                setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
+                lastMaxManaValues.remove(player.getUniqueId()); // Remove the entry for the player
+            }
         }
         if (Objects.requireNonNull(event.getMainHandItem()).hasItemMeta()) {
             if (Objects.requireNonNull(event.getMainHandItem().getItemMeta()).hasLore()) {

@@ -82,7 +82,7 @@ public class BryzleQuest implements Listener {
                 Material.GLOWSTONE_DUST, 10, Material.REDSTONE, 10, Material.MAGMA_CREAM, 5,
                 Material.SPIDER_EYE, 10, Material.SUGAR, 10, Material.FERMENTED_SPIDER_EYE, 5,
                 Material.GLISTERING_MELON_SLICE, 5, Material.GLISTERING_MELON_SLICE, 5, Material.GOLDEN_CARROT, 5,
-                Material.POTION, 15)));
+                Material.POTION, 1)));
 
         plugin.availableQuests.add(new Main.Quest("[MEDIUM] [Bryzle] Beekeeper", "Harvest honey from 10 beehives", createMaterialMap(Material.HONEY_BOTTLE, 10)));
         plugin.availableQuests.add(new Main.Quest("[MEDIUM] [Bryzle] Nether Explorer", "Collect 30 blaze rods and 20 ghast tears",

@@ -3,7 +3,6 @@ package lunatic.athenarpg.itemlistener.common;
 import lunatic.athenarpg.Main;
 import lunatic.athenarpg.itemlistener.utils.CooldownManager;
 import lunatic.athenarpg.itemlistener.utils.RPGUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -24,10 +23,12 @@ import java.util.Random;
 public class Taser implements Listener {
     private Main plugin;
     private RPGUtils utils = new RPGUtils();
-    private final CooldownManager cooldownManager = new CooldownManager(plugin);
+
+    CooldownManager cooldownManager;
 
     public Taser(Main plugin) {
         this.plugin = plugin;
+        this.cooldownManager = new CooldownManager();
     }
 
     @EventHandler
@@ -39,19 +40,15 @@ public class Taser implements Listener {
 
             if (event.getDamage() > 0) {
                 if (rpgName.contains("Taser")) {
-                    Long cooldown = cooldownManager.getCooldown(utils.getRPGNameInHand(player), player.getUniqueId());
-                    if (cooldown == null) {
-                        int randomNumber = random.nextInt(100) + 1;
 
-                        if (randomNumber <= 40 && event.getEntity() instanceof LivingEntity) {
-                            LivingEntity enemy = (LivingEntity) event.getEntity();
-                            enemy.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 3 * 20, 5));
-                            enemy.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20, 5));
-                            enemy.getWorld().strikeLightningEffect(enemy.getLocation());
-                            player.sendMessage("§bYou just stunned " + enemy.getName() + "!");
-                        }
-                    } else {
+                    int randomNumber = random.nextInt(100) + 1;
 
+                    if (randomNumber <= 40 && event.getEntity() instanceof LivingEntity) {
+                        LivingEntity enemy = (LivingEntity) event.getEntity();
+                        enemy.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 3 * 20, 5));
+                        enemy.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20, 5));
+                        enemy.getWorld().strikeLightningEffect(enemy.getLocation());
+                        player.sendMessage("§bYou just stunned " + enemy.getName() + "!");
                     }
                 }
             }
@@ -74,8 +71,7 @@ public class Taser implements Listener {
 
                 event.setCancelled(true);
                 // Check if the RPG level is at least 2 (assuming Long Range Electricity I is at level 2)
-                Long cooldown = cooldownManager.getCooldown(utils.getRPGNameInHand(player), player.getUniqueId());
-                if (cooldown == null) {
+                if (!cooldownManager.isOnCooldown(player.getName(), rpgName)) {
                     double maxRange = 5.0;
 
                     // Get player's line of sight
@@ -97,14 +93,14 @@ public class Taser implements Listener {
                                     targetPlayer.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 3 * 20, 5));
                                     targetPlayer.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20, 5));
                                     targetPlayer.getWorld().strikeLightningEffect(targetPlayer.getLocation());
-                                    cooldownManager.setCooldown(rpgName, cooldownTime, player.getUniqueId());
+                                    cooldownManager.setCooldown(player.getName(), rpgName, cooldownTime);
                                     break;
                                 }
                             }
                         }
                     }
                 } else {
-                    cooldownManager.sendCooldownMessage(player, rpgName, cooldownTime);
+                    cooldownManager.sendCooldownMessage(player, rpgName);
                 }
 
             }

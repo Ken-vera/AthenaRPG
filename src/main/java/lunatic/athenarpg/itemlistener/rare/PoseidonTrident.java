@@ -27,7 +27,7 @@ public class PoseidonTrident implements Listener {
     public PoseidonTrident(Main plugin) {
         this.plugin = plugin;
         this.utils = new RPGUtils();
-        this.cooldownManager = new CooldownManager(plugin);
+        this.cooldownManager = new CooldownManager();
     }
 
     @EventHandler
@@ -48,9 +48,7 @@ public class PoseidonTrident implements Listener {
                 int levitationAmplifier = (level / 2);
 
                 event.setCancelled(true);
-                Long cooldown = cooldownManager.getCooldown(rpgName, player.getUniqueId());
-
-                if (cooldown == null) {
+                if (!cooldownManager.isOnCooldown(player.getName(), rpgName)) {
                     BlockIterator blockIterator = new BlockIterator(player, (int) maxRange);
                     boolean playerAffected = false; // Flag to track if a player has been affected
 
@@ -84,7 +82,7 @@ public class PoseidonTrident implements Listener {
                                     targetPlayer.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, potionEffectDuration * 20, levitationAmplifier));
 
                                     targetPlayer.getWorld().strikeLightningEffect(targetPlayer.getLocation());
-                                    cooldownManager.setCooldown(rpgName, cooldownTime, player.getUniqueId());
+                                    cooldownManager.setCooldown(player.getName(), rpgName, cooldownTime);
                                     playerAffected = true; // Set the flag to true
                                     break;
                                 }
@@ -96,7 +94,7 @@ public class PoseidonTrident implements Listener {
                         }
                     }
                 } else {
-                    cooldownManager.sendCooldownMessage(player, rpgName, cooldownTime);
+                    cooldownManager.sendCooldownMessage(player, rpgName);
                 }
             }
         }

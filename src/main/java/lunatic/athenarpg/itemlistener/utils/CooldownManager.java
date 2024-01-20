@@ -1,62 +1,60 @@
 package lunatic.athenarpg.itemlistener.utils;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import lunatic.athenarpg.Main;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import java.util.HashMap;
 
 public class CooldownManager {
 
-    private Main plugin;
-    RPGUtils utils = new RPGUtils();
+    private HashMap<String, HashMap<String, Long>> cooldowns;
 
-    public CooldownManager(Main plugin){
-        this.plugin = plugin;
+    public CooldownManager() {
+        cooldowns = new HashMap<>();
     }
 
-    private final Cache<String, Cache<UUID, Long>> cooldowns = Caffeine.newBuilder().build();
-
-    public void setCooldown(String cooldownType, int cooldownTime, UUID uuid) {
-        Cache<UUID, Long> newCooldownMap = Caffeine.newBuilder()
-                .expireAfterWrite(cooldownTime, TimeUnit.SECONDS)
-                .build();
-        newCooldownMap.put(uuid, System.currentTimeMillis());
-        cooldowns.put(cooldownType, newCooldownMap);
+    public void setCooldown(String playerName, String RPGName, long cooldownInSeconds) {
+        long cooldownInMillis = cooldownInSeconds * 1000;
+        cooldowns.computeIfAbsent(playerName, k -> new HashMap<>()).put(RPGName, System.currentTimeMillis() + cooldownInMillis);
     }
 
-    public Long getCooldown(String cooldownType, UUID uuid) {
-        Cache<UUID, Long> cooldownMap = cooldowns.getIfPresent(cooldownType);
-
-        if (cooldownMap != null) {
-            return cooldownMap.getIfPresent(uuid);
-        }
-        return null;
-    }
-
-    public void resetCooldown(String cooldownType, UUID uuid) {
-        Cache<UUID, Long> cooldownMap = cooldowns.getIfPresent(cooldownType);
-
-        if (cooldownMap != null) {
-            cooldownMap.invalidate(uuid);
+    public void clearCooldown(String playerName, String RPGName) {
+        HashMap<String, Long> playerCooldowns = cooldowns.get(playerName);
+        if (playerCooldowns != null) {
+            playerCooldowns.remove(RPGName);
         }
     }
-    public void sendCooldownMessage(Player player, String rpgName, int cooldownTime) {
-        Long cooldown = getCooldown(rpgName, player.getUniqueId());
-        player.sendMessage(ChatColor.RED + rpgName + " still on " + TimeUnit.MILLISECONDS.toSeconds((cooldownTime * 1000) - (System.currentTimeMillis() - cooldown)) + "s cooldown!");
+
+    public void subtractCooldown(String playerName, String RPGName, long amountInSeconds) {
+        long amountInMillis = amountInSeconds * 1000;
+        HashMap<String, Long> playerCooldowns = cooldowns.get(playerName);
+        if (playerCooldowns != null) {
+            playerCooldowns.merge(RPGName, System.currentTimeMillis() + amountInMillis, Long::max);
+        }
     }
 
-    public int getCooldownInteger(String cooldownType, UUID uuid) {
-        Long remainingCooldown = getCooldown(cooldownType, uuid);
-
-        if (remainingCooldown != null) {
-            long currentTime = System.currentTimeMillis();
-            int secondsRemaining = (int) TimeUnit.MILLISECONDS.toSeconds(remainingCooldown - currentTime);
-            return Math.max(0, secondsRemaining); // Ensure non-negative value
+    public void addCooldown(String playerName, String RPGName, long amountInSeconds) {
+        long amountInMillis = amountInSeconds * 1000;
+        HashMap<String, Long> playerCooldowns = cooldowns.get(playerName);
+        if (playerCooldowns != null) {
+            playerCooldowns.merge(RPGName, System.currentTimeMillis() - amountInMillis, Long::max);
         }
-        return 0; // Return 0 if no cooldown is found
+    }
+
+    public boolean isOnCooldown(String playerName, String RPGName) {
+        HashMap<String, Long> playerCooldowns = cooldowns.get(playerName);
+        return playerCooldowns != null && playerCooldowns.getOrDefault(RPGName, 0L) > System.currentTimeMillis();
+    }
+
+    public long getRemainingCooldown(String playerName, String RPGName) {
+        HashMap<String, Long> playerCooldowns = cooldowns.get(playerName);
+        if (playerCooldowns != null) {
+            long remainingCooldown = playerCooldowns.getOrDefault(RPGName, 0L) - System.currentTimeMillis();
+            return Math.max(remainingCooldown, 0) / 1000; // Convert to seconds
+        }
+        return 0;
+    }
+
+    public void sendCooldownMessage(Player player, String rpgName){
+        player.sendMessage("§cYou're currently on " +getRemainingCooldown(player.getName(), rpgName) + " seconds cooldown!");
     }
 }

@@ -5,6 +5,7 @@ import lunatic.athenarpg.data.FileManager;
 import lunatic.athenarpg.db.Database;
 import lunatic.athenarpg.dungeondrops.DropListener;
 import lunatic.athenarpg.handler.SignEditorHandler;
+import lunatic.athenarpg.itemlistener.dungeon.pve.PlayerStandHigh;
 import lunatic.athenarpg.itemlistener.utils.RPGListenerRegister;
 import lunatic.athenarpg.itemlistener.utils.SlimefunHandler;
 import lunatic.athenarpg.quest.BryzleQuest;
@@ -58,6 +59,7 @@ public class Main extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new SlimefunHandler(this), this);
         getServer().getPluginManager().registerEvents(new DropListener(this), this);
         getServer().getPluginManager().registerEvents(new StatusListener(this), this);
+        getServer().getPluginManager().registerEvents(new PlayerStandHigh(this), this);
         getServer().getPluginManager().registerEvents(this, this);
 
         getCommand("blacksmithrepair").setExecutor(new BlacksmithCommand(this));

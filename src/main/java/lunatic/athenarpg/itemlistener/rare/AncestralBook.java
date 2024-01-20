@@ -29,7 +29,7 @@ public class AncestralBook implements Listener {
         this.plugin = plugin;
         this.utils = new RPGUtils();
         this.itemConstructor = new ItemConstructor();
-        this.cooldownManager = new CooldownManager(plugin);
+        this.cooldownManager = new CooldownManager();
         this.statusListener = new StatusListener(plugin);
     }
 
@@ -46,8 +46,7 @@ public class AncestralBook implements Listener {
                 cooldownTime = itemConstructor.getCooldown(item);
                 int rpgLevel = utils.getRPGLevelInHand(player);
                 ItemMeta meta = item.getItemMeta();
-                Long cooldown = cooldownManager.getCooldown(utils.getRPGNameInHand(player), player.getUniqueId());
-                if (cooldown == null) {
+                if (!cooldownManager.isOnCooldown(player.getName(), rpgName)) {
                     String currentLocation = getCurrentLocationFromLore(meta.getLore());
                     cooldownTime = itemConstructor.getCooldown(item);
 
@@ -63,7 +62,7 @@ public class AncestralBook implements Listener {
                             player.sendMessage(ChatColor.GREEN + "Teleporting to: §c" + currentLocation);
 
                             int finalCooldownTime = cooldownTime;
-                            cooldownManager.setCooldown(rpgName, finalCooldownTime - (5 * rpgLevel), player.getUniqueId());
+                            cooldownManager.setCooldown(player.getName(), rpgName, finalCooldownTime - (5 * rpgLevel));
                             new BukkitRunnable() {
                                 @Override
                                 public void run() {
@@ -77,7 +76,7 @@ public class AncestralBook implements Listener {
                         }
                     }
                 } else {
-                    cooldownManager.sendCooldownMessage(player, rpgName, cooldownTime);
+                    cooldownManager.sendCooldownMessage(player, rpgName);
                 }
             }
         }

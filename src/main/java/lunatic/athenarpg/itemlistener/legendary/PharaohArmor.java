@@ -30,7 +30,7 @@ public class PharaohArmor implements Listener {
         this.plugin = plugin;
         this.rpgUtils = new RPGUtils();
         this.itemConstructor = new ItemConstructor();
-        this.cooldownManager = new CooldownManager(plugin);
+        this.cooldownManager = new CooldownManager();
         this.statusListener = new StatusListener(plugin);
     }
 
@@ -66,7 +66,7 @@ public class PharaohArmor implements Listener {
     public void PharaohDeath(EntityDamageEvent event){
         if (event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();
-            if (((Player) event.getEntity()).getHealth() - event.getDamage() <= 0) {
+            if (((Player) event.getEntity()).getHealth() <= 5) {
                 String rpgName = rpgUtils.getChestplateRPGName(player);
                 int rpgLevel = rpgUtils.getRPGLevelInChestplate(player);
                 if (rpgName.equals("Pharaoh Armor")) {

@@ -23,7 +23,7 @@ public class WitherMask implements Listener {
         this.plugin = plugin;
         this.rpgUtils = new RPGUtils();
         this.itemConstructor = new ItemConstructor();
-        this.cooldownManager = new CooldownManager(plugin);
+        this.cooldownManager = new CooldownManager();
         this.statusListener = new StatusListener(plugin);
     }
     @EventHandler
@@ -36,17 +36,16 @@ public class WitherMask implements Listener {
             int cooldownTime = itemConstructor.getHelmetCooldown(player);
             if (rpgName.equals("Wither Mask")) {
                 if (rpgLevel >= 3) {
-                    Long cooldown = cooldownManager.getCooldown(rpgName, player.getUniqueId());
-                    if (cooldown == null) {
+                    if (!cooldownManager.isOnCooldown(player.getName(), rpgName)) {
                         if (statusListener.haveEnoughMana(player, manaCost)) {
                             player.getWorld().strikeLightningEffect(player.getLocation());
                             player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 200, 1));
                             player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 200, 1));
-                            cooldownManager.setCooldown(rpgName, cooldownTime, player.getUniqueId());
+                            cooldownManager.setCooldown(player.getName(), rpgName, cooldownTime);
                             statusListener.consumeMana(player, manaCost);
                         }
                     }else {
-                        cooldownManager.sendCooldownMessage(player, rpgName, cooldownTime);
+                        cooldownManager.sendCooldownMessage(player, rpgName);
                     }
                 }
             }
