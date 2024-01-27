@@ -1,5 +1,6 @@
 package lunatic.athenarpg.stats;
 
+import com.codingforcookies.armorequip.ArmorEquipEvent;
 import lunatic.athenarpg.Main;
 import lunatic.athenarpg.itemlistener.utils.ItemConstructor;
 import org.bukkit.Bukkit;
@@ -11,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
@@ -88,153 +90,243 @@ public class StatusListener implements Listener {
         }
     }
 
+//    @EventHandler
+//    public void onItemHeld(PlayerItemHeldEvent event) {
+//        Player player = event.getPlayer();
+//        int newSlot = event.getNewSlot();
+//        int oldSlot = event.getPreviousSlot();
+//        int currentHand = event.getPreviousSlot();
+//        ItemStack newHeldItem = player.getInventory().getItem(newSlot);
+//        ItemStack oldHeldItem = player.getInventory().getItem(oldSlot);
+//        PlayerStatus playerStatus = getPlayerStatus(player);
+//        ItemStack currentHeldItem = player.getInventory().getItem(currentHand);
+//
+//        if (oldHeldItem == null || !oldHeldItem.hasItemMeta()){
+//            return;
+//        }
+//        if (newHeldItem == null || !newHeldItem.hasItemMeta()){
+//            return;
+//        }
+//
+//        ItemConstructor itemConstructor = new ItemConstructor();
+//        int newMaxManaValue = itemConstructor.getMaxMana(newHeldItem);
+//        int oldMaxManaValue = itemConstructor.getMaxMana(oldHeldItem);
+//
+////        // Check if the held item is armor
+////        if (currentHeldItem == null){
+////            ItemStack oldHeldItem = player.getInventory().getItem(oldSlot);
+////            if (oldHeldItem.hasItemMeta()) {
+////                ItemConstructor itemConstructor = new ItemConstructor();
+////                int maxManaValue = itemConstructor.getMaxMana(oldHeldItem);
+////                setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - maxManaValue);
+////            }
+////        }
+//
+//        if (newHeldItem != null && isArmor(newHeldItem.getType())) {
+//            setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - oldMaxManaValue);
+//            return;
+//        }
+//        if (newHeldItem == null){
+//            setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - oldMaxManaValue);
+//            return;
+//        }
+//        if (newHeldItem == null || newHeldItem.getType() == Material.AIR) {
+//            setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - oldMaxManaValue);
+//            return;
+//        }
+//        else{
+//            setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - oldMaxManaValue);
+//        }
+//        if (currentHeldItem != newHeldItem){
+//            setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - oldMaxManaValue);
+//        }
+//
+//
+//        if (newMaxManaValue > 0) {
+//            // Player is holding an item with Max Mana lore
+//            player.sendMessage("increase");
+//            setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() + newMaxManaValue);
+//            lastMaxManaValues.put(player.getUniqueId(), newMaxManaValue); // Update the lastMaxManaValue for the player
+//        } else if (newMaxManaValue == 0) {
+//            setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - oldMaxManaValue);
+//        }
+//    }
+
     @EventHandler
-    public void onItemHeld(PlayerItemHeldEvent event) {
-        Player player = event.getPlayer();
-        int newSlot = event.getNewSlot();
-        int currentHand = event.getPreviousSlot();
-        ItemStack newHeldItem = player.getInventory().getItem(newSlot);
-        PlayerStatus playerStatus = getPlayerStatus(player);
-        ItemStack currentHeldItem = player.getInventory().getItem(currentHand);
+    public void increaseOnhand(PlayerItemHeldEvent e) {
+        Player p = e.getPlayer();
+        if (p.getInventory().getItem(e.getNewSlot()) != null) {
+            if (!isArmor(p.getInventory().getItem(e.getNewSlot()).getType())) {
+                if (Objects.requireNonNull(p.getInventory().getItem(e.getNewSlot())).hasItemMeta()) {
+                    if (Objects.requireNonNull(Objects.requireNonNull(p.getInventory().getItem(e.getNewSlot())).getItemMeta()).hasLore()) {
+                        for (String itemLore : Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(p.getInventory().getItem(e.getNewSlot())).getItemMeta()).getLore())) {
+                            if (itemLore.contains("Max Mana:")) {
+                                String count = itemLore.replace("Max Mana:", "").replace("✤", "").replace("+", "").replace(" ", "");
+                                count = ChatColor.stripColor(count);
+                                int total = Integer.parseInt(count);
+                                PlayerStatus playerStatus = getPlayerStatus(p);
+                                setPlayerMaxStatus(p, (int) p.getMaxHealth(), playerStatus.getMaxMana() + total);
 
-        // Check if the held item is armor
-        if (newHeldItem != null && isArmor(newHeldItem.getType())) {
-            // Do nothing if it's armor
-            if (lastMaxManaValues.containsKey(player.getUniqueId())) {
-                int lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
-                setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
-                lastMaxManaValues.remove(player.getUniqueId()); // Remove the entry for the player
-            }
-            return;
-        }
-        if (newHeldItem == null){
-            if (lastMaxManaValues.containsKey(player.getUniqueId())) {
-                int lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
-                setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
-                lastMaxManaValues.remove(player.getUniqueId()); // Remove the entry for the player
-            }
-            return;
-        }
-        if (newHeldItem == null || newHeldItem.getType() == Material.AIR) {
-            if (lastMaxManaValues.containsKey(player.getUniqueId())) {
-                int lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
-                setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
-                lastMaxManaValues.remove(player.getUniqueId()); // Remove the entry for the player
-            }
-            return;
-        }
-        else{
-            if (lastMaxManaValues.containsKey(player.getUniqueId())) {
-                int lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
-                setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
-                lastMaxManaValues.remove(player.getUniqueId()); // Remove the entry for the player
+                            }
+                        }
+                    }
+                }
             }
         }
-        if (currentHeldItem != newHeldItem){
-            if (lastMaxManaValues.containsKey(player.getUniqueId())) {
-                int lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
-                setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
-                lastMaxManaValues.remove(player.getUniqueId()); // Remove the entry for the player
+    }
+    @EventHandler
+    public void decreaseOnhand(PlayerItemHeldEvent e) {
+        Player p = e.getPlayer();
+        if (p.getInventory().getItem(e.getPreviousSlot()) != null) {
+            if (!isArmor(p.getInventory().getItem(e.getPreviousSlot()).getType())) {
+                if (Objects.requireNonNull(p.getInventory().getItem(e.getPreviousSlot())).hasItemMeta()) {
+                    if (Objects.requireNonNull(Objects.requireNonNull(p.getInventory().getItem(e.getPreviousSlot())).getItemMeta()).hasLore()) {
+                        for (String itemLore : Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(p.getInventory().getItem(e.getPreviousSlot())).getItemMeta()).getLore())) {
+                            if (itemLore.contains("Max Mana:")) {
+                                String count = itemLore.replace("Max Mana:", "").replace("✤", "").replace("+", "").replace(" ", "");
+                                count = ChatColor.stripColor(count);
+                                int total = Integer.parseInt(count);
+                                PlayerStatus playerStatus = getPlayerStatus(p);
+                                setPlayerMaxStatus(p, (int) p.getMaxHealth(), Math.max(playerStatus.getMaxMana() - total, 100));
+                                if (playerStatus.getCurrentMana() > playerStatus.getMaxMana()) {
+                                    playerStatus.setCurrentMana(playerStatus.getMaxMana());
+                                }
+                            }
+                        }
+
+                    }
+
+                }
             }
         }
 
+    }
 
-        ItemConstructor itemConstructor = new ItemConstructor();
-        int newMaxManaValue = itemConstructor.getMaxMana(newHeldItem);
+//    @EventHandler
+//    public void onSwapHandItems(PlayerSwapHandItemsEvent event) {
+//        Player player = event.getPlayer();
+//        int newSlot = player.getInventory().getHeldItemSlot();
+//        ItemStack newHeldItem = player.getInventory().getItem(newSlot);
+//        PlayerStatus playerStatus = getPlayerStatus(player);
+//
+//        ItemConstructor itemConstructor = new ItemConstructor();
+//        int newMaxManaValue = itemConstructor.getMaxMana(newHeldItem);
+//        int oldManaMaxValue = itemConstructor.getMaxMana(player.getInventory().getItemInOffHand());
+//
+//        if (newHeldItem != null && isArmor(newHeldItem.getType())) {
+//            setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - oldManaMaxValue);
+//            return;
+//        }
+//        setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - newMaxManaValue);
+//
+//
+//        if (event.getMainHandItem() != null && event.getOffHandItem().getType().equals(Material.AIR)) {
+//            handleMaxManaChange(player, playerStatus, event.getOffHandItem());
+//        } else if (event.getOffHandItem() != null && event.getMainHandItem().getType().equals(Material.AIR)) {
+//            setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - oldManaMaxValue);
+//            lastMaxManaValues.put(player.getUniqueId(), lastMaxManaValues.get(player.getUniqueId()) - oldManaMaxValue);
+//
+//
+//        } else {
+//            // Player is swapping with non-affected items
+//            if (lastMaxManaValues.containsKey(player.getUniqueId())) {
+//                int lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
+//                setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
+//                lastMaxManaValues.put(player.getUniqueId(), lastMaxManaValues.get(player.getUniqueId()) - lastMaxManaValue);
+//            }
+//        }
+//        if (Objects.requireNonNull(event.getMainHandItem()).hasItemMeta()) {
+//            if (Objects.requireNonNull(event.getMainHandItem().getItemMeta()).hasLore()) {
+//                for (String itemLore : Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(event.getMainHandItem().getItemMeta()).getLore()))) {
+//                    if (itemLore.contains("Max Mana:")) {
+//                        String count = itemLore.replace("Max Mana:", "").replace("✤", "").replace("+", "").replace(" ", "");
+//                        count = ChatColor.stripColor(count);
+//                        int total = Integer.parseInt(count);
+//
+//                        setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() + total);
+//                        lastMaxManaValues.put(player.getUniqueId(), total);
+//                    }
+//
+//                }
+//            }
+//        }
+//    }
 
-        if (newMaxManaValue > 0) {
-            // Player is holding an item with Max Mana lore
-            setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() + newMaxManaValue);
-            lastMaxManaValues.put(player.getUniqueId(), newMaxManaValue); // Update the lastMaxManaValue for the player
-        } else if (newMaxManaValue == 0) {
-            if (lastMaxManaValues.containsKey(player.getUniqueId())) {
-                int lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
-                setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
-                lastMaxManaValues.remove(player.getUniqueId()); // Remove the entry for the player
+    @EventHandler
+    public void onSwapItem(PlayerSwapHandItemsEvent e) {
+        Player p = e.getPlayer();
+        if (Objects.requireNonNull(e.getOffHandItem()).hasItemMeta()) {
+            if (Objects.requireNonNull(e.getOffHandItem().getItemMeta()).hasLore()) {
+                if (!isArmor(e.getOffHandItem().getType())){
+                    for (String itemLore : Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(e.getOffHandItem().getItemMeta()).getLore()))) {
+                        if (itemLore.contains("Max Mana:")) {
+                            String count = itemLore.replace("Max Mana:", "").replace("✤", "").replace("+", "").replace(" ", "");
+                            count = ChatColor.stripColor(count);
+                            int total = Integer.parseInt(count);
+                            PlayerStatus playerStatus = getPlayerStatus(p);
+                            setPlayerMaxStatus(p, (int) p.getMaxHealth(), Math.max(playerStatus.getMaxMana() - total, 100));
+                            if (playerStatus.getCurrentMana() > playerStatus.getMaxMana()) {
+                                playerStatus.setCurrentMana(playerStatus.getMaxMana());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (Objects.requireNonNull(e.getMainHandItem()).hasItemMeta()) {
+            if (Objects.requireNonNull(e.getMainHandItem().getItemMeta()).hasLore()) {
+                if (!isArmor(e.getMainHandItem().getType())){
+                    for (String itemLore : Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(e.getMainHandItem().getItemMeta()).getLore()))) {
+                        if (itemLore.contains("Max Mana:")) {
+                            String count = itemLore.replace("Max Mana:", "").replace("✤", "").replace("+", "").replace(" ", "");
+                            count = ChatColor.stripColor(count);
+                            int total = Integer.parseInt(count);
+                            PlayerStatus playerStatus = getPlayerStatus(p);
+                            setPlayerMaxStatus(p, (int) p.getMaxHealth(), playerStatus.getMaxMana() + total);
+                        }
+                    }
+                }
             }
         }
     }
 
     @EventHandler
-    public void onSwapHandItems(PlayerSwapHandItemsEvent event) {
-        Player player = event.getPlayer();
-        int newSlot = player.getInventory().getHeldItemSlot();
-        ItemStack newHeldItem = player.getInventory().getItem(newSlot);
-        PlayerStatus playerStatus = getPlayerStatus(player);
-
-        if (newHeldItem != null && isArmor(newHeldItem.getType())) {
-            if (lastMaxManaValues.containsKey(player.getUniqueId())) {
-                int lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
-                setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
-                lastMaxManaValues.remove(player.getUniqueId()); // Remove the entry for the player
-            }
-            return;
-        }
-        if (lastMaxManaValues.containsKey(player.getUniqueId())) {
-            int lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
-            setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
-            lastMaxManaValues.remove(player.getUniqueId()); // Remove the entry for the player
-        }
-
-        if (event.getMainHandItem() != null && event.getOffHandItem().getType().equals(Material.AIR)) {
-            handleMaxManaChange(player, playerStatus, event.getOffHandItem());
-        } else if (event.getOffHandItem() != null && event.getMainHandItem().getType().equals(Material.AIR)) {
-            Integer lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
-            if (lastMaxManaValue != null) {
-                if (lastMaxManaValue != 0) {
-                    setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
-                    lastMaxManaValues.remove(player.getUniqueId()); // Remove the entry for the player
-                }
-            }
-
-        } else {
-            // Player is swapping with non-affected items
-            if (lastMaxManaValues.containsKey(player.getUniqueId())) {
-                int lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
-                setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
-                lastMaxManaValues.remove(player.getUniqueId()); // Remove the entry for the player
-            }
-        }
-        if (Objects.requireNonNull(event.getMainHandItem()).hasItemMeta()) {
-            if (Objects.requireNonNull(event.getMainHandItem().getItemMeta()).hasLore()) {
-                for (String itemLore : Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(event.getMainHandItem().getItemMeta()).getLore()))) {
-                    if (itemLore.contains("Max Mana:")) {
-                        String count = itemLore.replace("Max Mana:", "").replace("✤", "").replace("+", "").replace(" ", "");
-                        count = ChatColor.stripColor(count);
-                        int total = Integer.parseInt(count);
-
-                        setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() + total);
-                        lastMaxManaValues.put(player.getUniqueId(), total);
+    public void onItemDrops(PlayerDropItemEvent event){
+        Player p = event.getPlayer();
+        if (Objects.requireNonNull(event.getItemDrop()).getItemStack().hasItemMeta()) {
+            if (Objects.requireNonNull(event.getItemDrop().getItemStack().getItemMeta()).hasLore()) {
+                if (!isArmor(event.getItemDrop().getItemStack().getType())) {
+                    for (String itemLore : Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(event.getItemDrop().getItemStack().getItemMeta().getLore())))) {
+                        if (itemLore.contains("Max Mana:")) {
+                            String count = itemLore.replace("Max Mana:", "").replace("✤", "").replace("+", "").replace(" ", "");
+                            count = ChatColor.stripColor(count);
+                            int total = Integer.parseInt(count);
+                            PlayerStatus playerStatus = getPlayerStatus(p);
+                            setPlayerMaxStatus(p, (int) p.getMaxHealth(), Math.max(playerStatus.getMaxMana() - total, 100));
+                            if (playerStatus.getCurrentMana() > playerStatus.getMaxMana()) {
+                                playerStatus.setCurrentMana(playerStatus.getMaxMana());
+                            }
+                        }
                     }
-
                 }
             }
         }
     }
 
     private void handleMaxManaChange(Player player, PlayerStatus playerStatus, ItemStack newHeldItem) {
+        ItemConstructor itemConstructor = new ItemConstructor();
+        int newMaxManaValue = itemConstructor.getMaxMana(newHeldItem);
         if (newHeldItem == null || newHeldItem.getType() == Material.AIR) {
-            if (lastMaxManaValues.containsKey(player.getUniqueId())) {
-                int lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
-                setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
-                lastMaxManaValues.remove(player.getUniqueId()); // Remove the entry for the player
-            }
+
+            setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - newMaxManaValue);
             return;
         }
 
-        ItemConstructor itemConstructor = new ItemConstructor();
-        int newMaxManaValue = itemConstructor.getMaxMana(newHeldItem);
-
         if (newMaxManaValue == 0) {
-            if (lastMaxManaValues.containsKey(player.getUniqueId())) {
-                int lastMaxManaValue = lastMaxManaValues.get(player.getUniqueId());
-                setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
-                lastMaxManaValues.remove(player.getUniqueId()); // Remove the entry for the player
-            }
+            setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - newMaxManaValue);
         } else {
             // Player is holding an item with Max Mana lore
             setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() + newMaxManaValue);
-            lastMaxManaValues.put(player.getUniqueId(), newMaxManaValue); // Update the lastMaxManaValue for the player
         }
     }
 
@@ -259,7 +351,6 @@ public class StatusListener implements Listener {
 
                                 int lastMaxManaValue = total;
                                 setPlayerMaxStatus(p, (int) p.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
-                                lastMaxManaValues.remove(p.getUniqueId()); // Remove the entry for the player
 
                             }
                         }
@@ -280,7 +371,6 @@ public class StatusListener implements Listener {
 
                                 int lastMaxManaValue = total;
                                 setPlayerMaxStatus(p, (int) p.getMaxHealth(), playerStatus.getMaxMana() + lastMaxManaValue);
-                                lastMaxManaValues.remove(p.getUniqueId()); // Remove the entry for the player
 
                                 int maxMana = playerStatus.getMaxMana();
                                 int mana = playerStatus.getCurrentMana();
@@ -317,7 +407,6 @@ public class StatusListener implements Listener {
                     PlayerStatus playerStatus = getPlayerStatus(player);
 
                     setPlayerMaxStatus(player, (int) player.getMaxHealth(), playerStatus.getMaxMana() - lastMaxManaValue);
-                    lastMaxManaValues.remove(player.getUniqueId()); // Remove the entry for the player
                 }
             }
         }
@@ -356,6 +445,55 @@ public class StatusListener implements Listener {
                 return false;
         }
     }
+
+    @EventHandler
+    public void ManaOnArmor(ArmorEquipEvent e) {
+        if (e.getPlayer().isOnline()) {
+            Player p = e.getPlayer();
+            //On Equip Increase Mana
+            if (e.getNewArmorPiece() != null) {
+                if (e.getNewArmorPiece().hasItemMeta()) {
+                    if (Objects.requireNonNull(e.getNewArmorPiece().getItemMeta()).hasLore()) {
+                        for (String itemLore : Objects.requireNonNull(Objects.requireNonNull(e.getNewArmorPiece().getItemMeta()).getLore())) {
+                            if (itemLore.contains("Max Mana:")) {
+                                String count = itemLore.replace("Max Mana", "").replace("✤", "").replace("&", "")
+                                        .replace("+", "").replace(" ", "").replace(":", "");
+                                count = ChatColor.stripColor(count);
+                                int total = Integer.parseInt(count);
+
+                                PlayerStatus playerStatus = getPlayerStatus(p);
+                                setPlayerMaxStatus(p, (int) p.getMaxHealth(), playerStatus.getMaxMana() + total);
+
+                            }
+                        }
+                    }
+                }
+            }
+            //On Unequip Decrease Mana
+            if (e.getOldArmorPiece() != null) {
+                if (e.getOldArmorPiece().hasItemMeta()) {
+                    if (Objects.requireNonNull(e.getOldArmorPiece().getItemMeta()).hasLore()) {
+                        for (String itemLore : Objects.requireNonNull(Objects.requireNonNull(e.getOldArmorPiece().getItemMeta()).getLore())) {
+                            if (itemLore.contains("Max Mana:")) {
+                                String count = itemLore.replace("Max Mana", "").replace("✤", "").replace("&", "")
+                                        .replace("+", "").replace(" ", "").replace(":", "");
+                                count = ChatColor.stripColor(count);
+                                int total = Integer.parseInt(count);
+                                PlayerStatus playerStatus = getPlayerStatus(p);
+                                setPlayerMaxStatus(p, (int) p.getMaxHealth(), playerStatus.getMaxMana() - total);
+                                if (playerStatus.getCurrentMana() > playerStatus.getMaxMana()){
+                                    playerStatus.setCurrentMana(playerStatus.getMaxMana());
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+
 
 
     @EventHandler

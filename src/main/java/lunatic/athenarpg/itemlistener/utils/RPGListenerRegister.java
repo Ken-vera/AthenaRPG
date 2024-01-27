@@ -3,10 +3,8 @@ package lunatic.athenarpg.itemlistener.utils;
 import lunatic.athenarpg.Main;
 import lunatic.athenarpg.itemlistener.common.ObsidianChestplate;
 import lunatic.athenarpg.itemlistener.common.Taser;
-import lunatic.athenarpg.itemlistener.dungeon.EldoriaSet;
-import lunatic.athenarpg.itemlistener.dungeon.EssenceEater;
-import lunatic.athenarpg.itemlistener.dungeon.PhantasmalSet;
-import lunatic.athenarpg.itemlistener.dungeon.SerpentineSceptre;
+import lunatic.athenarpg.itemlistener.dungeon.*;
+import lunatic.athenarpg.itemlistener.dungeon.pve.IniPhantomApaGajah;
 import lunatic.athenarpg.itemlistener.dungeon.pvp.DiamondSetListener;
 import lunatic.athenarpg.itemlistener.epic.Crusader;
 import lunatic.athenarpg.itemlistener.epic.ElementalistBlade;
@@ -45,6 +43,8 @@ public class RPGListenerRegister {
         plugin.getServer().getPluginManager().registerEvents(new PhantasmalSet(plugin), plugin);
         plugin.getServer().getPluginManager().registerEvents(new SerpentineSceptre(plugin, new StatusListener(plugin)), plugin);
         plugin.getServer().getPluginManager().registerEvents(new EssenceEater(plugin), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new EldoriaHeart(plugin), plugin);
+
         // LIMITED
 
         // FARMING

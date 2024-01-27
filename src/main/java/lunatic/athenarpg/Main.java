@@ -4,7 +4,10 @@ import lunatic.athenarpg.blacksmith.BlacksmithCommand;
 import lunatic.athenarpg.data.FileManager;
 import lunatic.athenarpg.db.Database;
 import lunatic.athenarpg.dungeondrops.DropListener;
+import lunatic.athenarpg.handler.CancelGift;
+import lunatic.athenarpg.handler.FixQueue;
 import lunatic.athenarpg.handler.SignEditorHandler;
+import lunatic.athenarpg.handler.SpawnerBreakHandler;
 import lunatic.athenarpg.itemlistener.dungeon.pve.PlayerStandHigh;
 import lunatic.athenarpg.itemlistener.utils.RPGListenerRegister;
 import lunatic.athenarpg.itemlistener.utils.SlimefunHandler;
@@ -60,6 +63,9 @@ public class Main extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new DropListener(this), this);
         getServer().getPluginManager().registerEvents(new StatusListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerStandHigh(this), this);
+        getServer().getPluginManager().registerEvents(new SpawnerBreakHandler(this), this);
+        getServer().getPluginManager().registerEvents(new CancelGift(this), this);
+        getServer().getPluginManager().registerEvents(new FixQueue(this), this);
         getServer().getPluginManager().registerEvents(this, this);
 
         getCommand("blacksmithrepair").setExecutor(new BlacksmithCommand(this));
@@ -346,10 +352,20 @@ public class Main extends JavaPlugin implements Listener {
                     if (player != null && player.isOnline()) {
                         UUID playerId = player.getUniqueId();
                         updatePlayerStatus(player);
+                        PlayerStatus playerStatus = playerStatusMap.get(playerId);
+                        int maxMana = playerStatus.getMaxMana();
+                        int mana = playerStatus.getCurrentMana();
+
+                        if (maxMana <= 0){
+                            playerStatus.setMaxMana(playerStatus.getMaxMana());
+                        }
+                        if (mana <= 0){
+                            playerStatus.setCurrentMana(0);
+                        }
                     }
                 }
             }
-        }.runTaskTimer(this, 0L, 10L);
+        }.runTaskTimer(this, 0L, 5L);
         new BukkitRunnable(){
             @Override
             public void run(){

@@ -16,6 +16,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -45,23 +46,31 @@ public class PharaohArmor implements Listener {
                 if (e.getDamage() > 0) {
                     Player damagedPlayer = (Player) damagedEntity;
                     if (rpgUtils.getChestplateRPGName(player).equals("Pharaoh Armor")) {
-                        int rpgLevel = rpgUtils.getRPGLevelInChestplate(player);
-                        if (damagedPlayer.getInventory().getArmorContents() != null && damagedPlayer.getInventory().getHelmet().getType().equals(Material.NETHERITE_HELMET) ||
-                                damagedPlayer.getInventory().getChestplate().getType().equals(Material.NETHERITE_CHESTPLATE) ||
-                                damagedPlayer.getInventory().getLeggings().getType().equals(Material.NETHERITE_LEGGINGS) ||
-                                damagedPlayer.getInventory().getBoots().getType().equals(Material.NETHERITE_BOOTS)) {
+                        ItemStack chestplate = player.getInventory().getChestplate();
+                        if (chestplate != null && chestplate.getType() != Material.AIR) {
+                            int rpgLevel = rpgUtils.getRPGLevelInChestplate(player);
+                            if (damagedPlayer.getInventory().getHelmet() != null
+                                    && damagedPlayer.getInventory().getChestplate() != null
+                                    && damagedPlayer.getInventory().getLeggings() != null
+                                    && damagedPlayer.getInventory().getBoots() != null
+                                    && damagedPlayer.getInventory().getHelmet().getType().equals(Material.NETHERITE_HELMET)
+                                    && damagedPlayer.getInventory().getChestplate().getType().equals(Material.NETHERITE_CHESTPLATE)
+                                    && damagedPlayer.getInventory().getLeggings().getType().equals(Material.NETHERITE_LEGGINGS)
+                                    && damagedPlayer.getInventory().getBoots().getType().equals(Material.NETHERITE_BOOTS)) {
 
-                            double damageIncrease = 2.0 + (rpgLevel * 0.2);
+                                double damageIncrease = 2.0 + (rpgLevel * 0.2);
 
-                            double originalDamage = e.getDamage();
-                            double increasedDamage = originalDamage * (1 + damageIncrease);
-                            e.setDamage(increasedDamage);
+                                double originalDamage = e.getDamage();
+                                double increasedDamage = originalDamage * (1 + damageIncrease);
+                                e.setDamage(increasedDamage);
+                            }
                         }
                     }
                 }
             }
         }
     }
+
     @EventHandler
     public void PharaohDeath(EntityDamageEvent event){
         if (event.getEntity() instanceof Player) {
