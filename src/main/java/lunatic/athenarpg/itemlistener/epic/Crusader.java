@@ -38,10 +38,13 @@ public class Crusader implements Listener {
         if (damagedEntity instanceof LivingEntity) {
 
             if (mainHand.equals("Crusader of Wasting Time") && offHand.equals("Crusader of Wasting Time") && rpgLevelMainHand == rpgLevelOffHand) {
-                double increaseMultiplier = getIncreaseMultiplier(rpgLevelMainHand);
-                double increasedDamage = event.getDamage() * increaseMultiplier;
-                damagedEntity.getWorld().playSound(damagedEntity.getLocation(), Sound.ENTITY_BLAZE_HURT, 50f, 1f);
-                event.setDamage(increasedDamage);
+                double distance = damager.getLocation().distance(damagedEntity.getLocation());
+                if (distance < 4) {
+                    double increaseMultiplier = getIncreaseMultiplier(rpgLevelMainHand);
+                    double increasedDamage = event.getDamage() * increaseMultiplier;
+                    damagedEntity.getWorld().playSound(damagedEntity.getLocation(), Sound.ENTITY_BLAZE_HURT, 1, 1f);
+                    event.setDamage(increasedDamage);
+                }
             }
         }
     }

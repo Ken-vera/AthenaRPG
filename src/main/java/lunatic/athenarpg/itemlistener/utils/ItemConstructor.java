@@ -201,6 +201,13 @@ public class ItemConstructor {
         ItemStack boots = player.getInventory().getBoots();
         return boots != null ? getCooldown(boots) : 0;
     }
-
+    public void setRPGNameInHand(Player player, String itemName) {
+        ItemStack itemInHand = player.getInventory().getItemInMainHand();
+        ItemMeta itemMeta = itemInHand.getItemMeta();
+        if (itemMeta != null) {
+            itemMeta.setDisplayName(itemName);
+            itemInHand.setItemMeta(itemMeta);
+        }
+    }
 
 }

@@ -150,24 +150,27 @@ public class ElementalistBlade implements Listener {
             return;
         }
 
+
         if (hasLoreContaining(lore, "§7Active Element: §cFire")) {
+            if (event.getDamage() > 3) {
+                target.setFireTicks(60);
+                int rpgLevel = utils.getRPGLevelInHand(player); // Assuming you have a method to get the RPG level for the Elementalist Blade
 
-            target.setFireTicks(60);
-            int rpgLevel = utils.getRPGLevelInHand(player); // Assuming you have a method to get the RPG level for the Elementalist Blade
+                new BukkitRunnable() {
+                    int ticksRemaining = 6; // 0.5 seconds = 6 ticks (20 ticks per second)
 
-            new BukkitRunnable() {
-                int ticksRemaining = 6; // 0.5 seconds = 6 ticks (20 ticks per second)
-                @Override
-                public void run() {
-                    if (ticksRemaining <= 0 || target.isDead()) {
-                        cancel();
-                        return;
+                    @Override
+                    public void run() {
+                        if (ticksRemaining <= 0 || target.isDead()) {
+                            cancel();
+                            return;
+                        }
+                        target.damage(2 + rpgLevel); // Increase fire damage by +1 per RPG level
+                        target.getWorld().playSound(target.getLocation(), Sound.ENTITY_BLAZE_HURT, 5, 1f);
+                        ticksRemaining--;
                     }
-                    target.damage(2 + rpgLevel); // Increase fire damage by +1 per RPG level
-                    target.getWorld().playSound(target.getLocation(), Sound.ENTITY_BLAZE_HURT, 100f, 1f);
-                    ticksRemaining--;
-                }
-            }.runTaskTimer(plugin, 0, 10); // 10 ticks = 0.5 seconds (20 ticks per second)
+                }.runTaskTimer(plugin, 0, 10); // 10 ticks = 0.5 seconds (20 ticks per second)
+            }
         }
     }
 

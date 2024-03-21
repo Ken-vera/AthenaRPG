@@ -51,6 +51,8 @@ public class SerpentineSceptre implements Listener {
                         bat.setAwake(true);
                         bat.setInvulnerable(true);
 
+                        plugin.entityList.add(bat);
+
                         // Calculate speed based on RPG level
                         double speedMultiplier = 1.5 + (0.2 * rpgLevel);
                         int damageIncrease = 3 * rpgLevel;
@@ -110,7 +112,7 @@ public class SerpentineSceptre implements Listener {
                                     cancel();
                                 }
                             }
-                        }.runTaskTimer(plugin, 0, 1);
+                        }.runTaskTimer(plugin, 2, 2);
 
                     }
                 }

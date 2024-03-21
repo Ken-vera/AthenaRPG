@@ -256,15 +256,17 @@ public class BryzleQuest implements Listener {
         else if (activeQuest.getQuest().getName().contains("[EXPERT]")){
             rewardManager.giveRPGBoxReward(player, "LEGENDARY_BOX");
         }
-        plugin.database.addReputation(player, 100, 0);
+
+        plugin.activeQuests.remove(activeQuest);
         player.sendMessage("");
         try {
+            plugin.database.addReputation(player, 100, 0);
             player.sendMessage("§a+100 Reputation on Bryzle! §7(§b" +plugin.database.getPlayerReputation(player.getUniqueId(), "bryzleReputation") +"§7)");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
         player.sendMessage("");
-        plugin.activeQuests.remove(activeQuest);
+
     }
 
     public void completeQuest(Player player, Main.ActiveQuest activeQuest) {
@@ -319,6 +321,8 @@ public class BryzleQuest implements Listener {
         else if (activeQuest.getQuest().getName().contains("[EXPERT]")){
             rewardManager.giveRPGBoxReward(player, "LEGENDARY_BOX");
         }
+        player.sendMessage("");
+        plugin.activeQuests.remove(activeQuest);
         plugin.database.addReputation(player, 100, 0);
         player.sendMessage("");
         try {
@@ -326,8 +330,6 @@ public class BryzleQuest implements Listener {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        player.sendMessage("");
-        plugin.activeQuests.remove(activeQuest);
     }
     private boolean areItemsVanilla(Player player, Map<Material, Integer> requiredMaterials) {
         for (Map.Entry<Material, Integer> entry : requiredMaterials.entrySet()) {

@@ -9,3 +9,8 @@ commands:
     description: Quest Complete
   blacksmithrepair:
     description: Repair
+  createdummy:
+    permission: athenarpg.dummy
+    description: Spawn a Dummy!
+  clearchicken:
+    permission: op

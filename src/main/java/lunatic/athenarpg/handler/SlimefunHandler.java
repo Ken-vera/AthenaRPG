@@ -1,4 +1,4 @@
-package lunatic.athenarpg.itemlistener.utils;
+package lunatic.athenarpg.handler;
 
 import lunatic.athenarpg.Main;
 import org.bukkit.ChatColor;

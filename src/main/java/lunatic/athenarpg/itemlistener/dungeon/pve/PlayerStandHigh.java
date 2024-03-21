@@ -40,7 +40,15 @@ public class PlayerStandHigh implements Listener {
                     Location lastLocation = lastPlayerLocations.getOrDefault(player, null);
 
                     if (hitCounter >= 2 && lastLocation != null && lastLocation.getBlock().equals(playerLocation.getBlock()) && playerLocation.getBlockY() - entityLocation.getBlockY() >= 2) {
-                        player.setVelocity(direction.multiply(new Vector(1, 1, 1).multiply(10))); // Adjust the vector for the desired knockback effect
+                        // Push upwards first
+                        player.setVelocity(new Vector(0, 1, 0).multiply(1));
+
+                        // Delay the forward push
+                        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                            // Push forwards after a delay
+                            player.setVelocity(direction.multiply(new Vector(1, 1, 1).multiply(10))); // Adjust the vector for the desired knockback effect
+                        }, 10L);
+
                         hitCounterMap.put(player, 0); // Reset the hit counter
                     } else {
                         // Increment the hit counter and update the last location

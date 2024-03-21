@@ -1,16 +1,16 @@
 package lunatic.athenarpg;
 
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
+import lunatic.athenarpg.HeadList.Heads;
 import lunatic.athenarpg.blacksmith.BlacksmithCommand;
+import lunatic.athenarpg.blacksmith.ClearChicken;
 import lunatic.athenarpg.data.FileManager;
 import lunatic.athenarpg.db.Database;
 import lunatic.athenarpg.dungeondrops.DropListener;
-import lunatic.athenarpg.handler.CancelGift;
-import lunatic.athenarpg.handler.FixQueue;
-import lunatic.athenarpg.handler.SignEditorHandler;
-import lunatic.athenarpg.handler.SpawnerBreakHandler;
+import lunatic.athenarpg.handler.*;
 import lunatic.athenarpg.itemlistener.dungeon.pve.PlayerStandHigh;
 import lunatic.athenarpg.itemlistener.utils.RPGListenerRegister;
-import lunatic.athenarpg.itemlistener.utils.SlimefunHandler;
 import lunatic.athenarpg.quest.BryzleQuest;
 import lunatic.athenarpg.reward.BoxOpenListener;
 import lunatic.athenarpg.stats.PlayerStatus;
@@ -18,23 +18,22 @@ import lunatic.athenarpg.stats.StatusListener;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.milkbowl.vault.economy.Economy;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -48,6 +47,10 @@ public class Main extends JavaPlugin implements Listener {
     private FileManager playerDataFileManager;
     private FileConfiguration config;
     public FileManager fileManager;
+
+    public List<ArmorStand> armorStandList;
+    public List<Entity> entityList;
+
     BryzleQuest bryzleQuest;
 
     public Map<UUID, PlayerStatus> playerStatusMap = new HashMap<>();
@@ -65,10 +68,15 @@ public class Main extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new PlayerStandHigh(this), this);
         getServer().getPluginManager().registerEvents(new SpawnerBreakHandler(this), this);
         getServer().getPluginManager().registerEvents(new CancelGift(this), this);
-        getServer().getPluginManager().registerEvents(new FixQueue(this), this);
+        getServer().getPluginManager().registerEvents(new EntityCollision(this), this);
+        getServer().getPluginManager().registerEvents(new GamemodeSpectatorHandler(this), this);
+        getServer().getPluginManager().registerEvents(new DummyHandler(this), this);
         getServer().getPluginManager().registerEvents(this, this);
 
         getCommand("blacksmithrepair").setExecutor(new BlacksmithCommand(this));
+        getCommand("createdummy").setExecutor(new DummyHandler(this));
+
+        getCommand("clearchicken").setExecutor(new ClearChicken(this));
 
         startStatusUpdateTask();
 
@@ -101,11 +109,45 @@ public class Main extends JavaPlugin implements Listener {
 
         playerDataFileManager = new FileManager(this);
 
+        armorStandList = new ArrayList<>();
+
+        entityList = new ArrayList<>();
+
+        /// DUMMY SPAWN ON RELOAD
+
+        new BukkitRunnable(){
+            @Override
+            public void run() {
+                World worldName = Bukkit.getWorld("spawn-mix");
+                if (worldName != null) {
+                    Location location = worldName.getBlockAt(322, 67, -186).getLocation();
+                    if (location != null) {
+                        Monster dummy = (Monster) location.getWorld().spawn(location.add(0.5, 0, 0.5), Zombie.class);
+                        dummy.setCustomName("§a§lMonster Dummy §7(§cDamage Tester§7)");
+                        dummy.setCustomNameVisible(true);
+                        dummy.setMaxHealth(1000000);
+                        dummy.setHealth(1000000);
+                        dummy.setAI(false);
+                        dummy.setInvulnerable(false);
+                        dummy.setSilent(true);
+
+                        entityList.add(dummy);
+                    }
+                }
+            }
+        }.runTaskLater(this, 60);
 
     }
     @Override
     public void onDisable(){
-
+        for (ArmorStand armorStand : armorStandList) {
+            armorStand.remove();
+        }
+        armorStandList.clear();
+        for (Entity entity : entityList) {
+            entity.remove();
+        }
+        entityList.clear();
     }
 
     @EventHandler
@@ -365,7 +407,7 @@ public class Main extends JavaPlugin implements Listener {
                     }
                 }
             }
-        }.runTaskTimer(this, 0L, 5L);
+        }.runTaskTimer(this, 0L, 1L);
         new BukkitRunnable(){
             @Override
             public void run(){
@@ -433,5 +475,57 @@ public class Main extends JavaPlugin implements Listener {
     }
     public static void sendActionBarMessage(Player player, String message) {
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
+    }
+    public static ItemStack createSkull(String url, String name) {
+        ItemStack head = new ItemStack(Material.PLAYER_HEAD, 1, (short)3);
+        if (url.isEmpty()) {
+            return head;
+        } else {
+            SkullMeta headMeta = (SkullMeta)head.getItemMeta();
+            GameProfile profile = new GameProfile(UUID.randomUUID(), (String)null);
+            profile.getProperties().put("textures", new Property("textures", url));
+
+            try {
+                assert headMeta != null;
+
+                Field profileField = headMeta.getClass().getDeclaredField("profile");
+                profileField.setAccessible(true);
+                profileField.set(headMeta, profile);
+            } catch (NoSuchFieldException | SecurityException | IllegalAccessException | IllegalArgumentException var6) {
+                var6.printStackTrace();
+            }
+
+            head.setItemMeta(headMeta);
+            return head;
+        }
+    }
+
+
+    public static ItemStack getHead(String name) {
+        Heads[] var1 = Heads.values();
+        int var2 = var1.length;
+
+        for(int var3 = 0; var3 < var2; ++var3) {
+            Heads head = var1[var3];
+            if (head.getName().equals(name)) {
+                return head.getItemStack();
+            }
+        }
+
+        return null;
+    }
+
+    public static String getUrl(String name, int num) {
+        Heads[] var2 = Heads.values();
+        int var3 = var2.length;
+
+        for(int var4 = 0; var4 < var3; ++var4) {
+            Heads head = var2[var4];
+            if (head.getName().equalsIgnoreCase(name + num)) {
+                return head.getUrl();
+            }
+        }
+
+        return null;
     }
 }

@@ -39,7 +39,10 @@ public class BoxOpenListener implements Listener {
 
     public List<String> EPIC_REWARD = Arrays.asList(
             "ENCHANTED_FARMING_BLOCK",
-            "UNIDENTIFIED_14"
+            "UNIDENTIFIED_14",
+            "HEAVY_ICE",
+            "WATER_ESSENCE",
+            "FIRE_POWDER"
     );
 
     public List<String> LEGENDARY_REWARD = Arrays.asList(
@@ -47,7 +50,9 @@ public class BoxOpenListener implements Listener {
             "SPEEDY_POWDER",
             "EMPOWERED_WITHER_SKULL",
             "DRAGOPTICS_LOST_EYES",
-            "RED_CROWN"
+            "RED_CROWN",
+            "CHAOTIC_DAHLIA_FLOWER",
+            "DEVIL_TEAR"
     );
 
     public List<String> ESSENCE_REWARD = Arrays.asList(
