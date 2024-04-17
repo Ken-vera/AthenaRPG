@@ -35,7 +35,7 @@ public class StarvingOrb implements Listener {
 
                     e.setCancelled(true);
                     ArmorStand starving = p.getWorld().spawn(p.getLocation().add(0, 1, 0), ArmorStand.class); // Changed variable name
-                    ArmorStand starvingHolo = p.getWorld().spawn(p.getLocation().add(0, 1, 0), ArmorStand.class); // Changed variable name
+                    ArmorStand starvingHolo = p.getWorld().spawn(p.getLocation().add(0, 2, 0), ArmorStand.class); // Changed variable name
                     starving.setHelmet(Main.getHead("starvingorb")); // Assuming you have a method to get the head for "starving"
                     starving.setVisible(false);
                     starving.setInvulnerable(true);
@@ -48,6 +48,7 @@ public class StarvingOrb implements Listener {
                     starvingHolo.setCustomName("§6" + (p.getName()) + "'s Starving Orb"); // Changed to "Starving Orb"
                     starvingHolo.setCustomNameVisible(true);
                     starvingHolo.setGravity(false);
+                    starvingHolo.setMarker(true);
 
                     plugin.armorStandList.add(starving);
                     plugin.armorStandList.add(starvingHolo);
@@ -93,7 +94,7 @@ public class StarvingOrb implements Listener {
                         } else {
                             loc.setYaw(loc.getYaw() + (float) 20);
                             starving.teleport(loc.add(0, 0.07, 0));
-                            starvingHolo.teleport(loc.clone().add(0, 0.22, 0));
+                            starvingHolo.teleport(loc.clone().add(0, 2.22, 0));
                         }
                     } else {
                         if (starving.getLocation().getY() < minimumHeight) {
@@ -101,7 +102,7 @@ public class StarvingOrb implements Listener {
                         } else {
                             loc.setYaw(loc.getYaw() + (float) 20);
                             starving.teleport(loc.add(0, -0.07, 0));
-                            starvingHolo.teleport(loc.clone().add(0, 0.22, 0));
+                            starvingHolo.teleport(loc.clone().add(0, 2.22, 0));
                         }
                     }
                 } else {

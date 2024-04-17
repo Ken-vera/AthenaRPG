@@ -32,12 +32,14 @@ public class RamadhanSet implements Listener {
             Entity attacker = event.getDamager();
 
             if (rpgName.equals("Peci")) {
-                LivingEntity entity = (LivingEntity) attacker;
-                entity.damage(event.getDamage() * 0.5D, player);
-                int damage = (int) (event.getDamage() * 0.5D);
-                entity.sendMessage("§b" + player.getName() + " reflected " + damage + " damage from Holy Burst!");
-                player.sendMessage("§bYou reflected " + damage + " damage to " + entity.getName());
-                player.playSound(entity.getLocation(), Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 10.0F, 1.4F);
+                if (!cooldownManager.isOnCooldown(player.getName(), "Peci")) {
+                    LivingEntity entity = (LivingEntity) attacker;
+                    entity.damage(event.getDamage() * 0.5D);
+                    entity.sendMessage("§b" + player.getName() + " reflected " + event.getDamage() * 0.5 + " damage from Holy Burst!");
+                    player.sendMessage("§bYou reflected " + event.getDamage() * 0.5 + " damage to " + entity.getName());
+                    player.playSound(entity.getLocation(), Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 10.0F, 1.4F);
+                    cooldownManager.setCooldown(player.getName(), "Peci", 1);
+                }
 
             }
         }
@@ -52,9 +54,9 @@ public class RamadhanSet implements Listener {
                 double randDouble = Math.random();
                 if (randDouble <= 0.3D) {
                     LivingEntity ent = (LivingEntity) attacker;
-                    ent.damage(event.getDamage() * 0.5D, player);
-                    ent.sendMessage("§b" + player.getName() + " reflected " + event.getDamage() * 0.5D + " damage from Holy Destruction!");
-                    player.sendMessage("§bYou reflected " + event.getDamage() * 0.5D + " damage to " + ent.getName());
+                    ent.damage(event.getDamage() * 2D, player);
+                    ent.sendMessage("§b" + player.getName() + " reflected " + event.getDamage() * 2D + " damage from Holy Destruction!");
+                    player.sendMessage("§bYou reflected " + event.getDamage() * 2D + " damage to " + ent.getName());
                     player.playSound(ent.getLocation(), Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 10.0F, 1.4F);
                 }
             }

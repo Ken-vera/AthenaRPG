@@ -3,14 +3,14 @@ version: '${project.version}'
 main: lunatic.athenarpg.Main
 api-version: '1.20'
 commands:
-  rpgquest:
-    description: Quest
-  rpgquestcomplete:
-    description: Quest Complete
+  #rpgquest:
+  #  description: Quest
+  #rpgquestcomplete:
+  #  description: Quest Complete
   blacksmithrepair:
     description: Repair
   createdummy:
     permission: athenarpg.dummy
     description: Spawn a Dummy!
-  clearchicken:
+  cleararmorstand:
     permission: op

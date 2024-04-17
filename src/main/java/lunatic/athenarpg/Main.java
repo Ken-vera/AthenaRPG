@@ -4,7 +4,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import lunatic.athenarpg.HeadList.Heads;
 import lunatic.athenarpg.blacksmith.BlacksmithCommand;
-import lunatic.athenarpg.blacksmith.ClearChicken;
+import lunatic.athenarpg.blacksmith.ClearArmorstand;
 import lunatic.athenarpg.data.FileManager;
 import lunatic.athenarpg.db.Database;
 import lunatic.athenarpg.dungeondrops.DropListener;
@@ -59,7 +59,7 @@ public class Main extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
-        getServer().getPluginManager().registerEvents(new BryzleQuest(this), this);
+        //getServer().getPluginManager().registerEvents(new BryzleQuest(this), this);
         getServer().getPluginManager().registerEvents(new BoxOpenListener(this), this);
         getServer().getPluginManager().registerEvents(new SignEditorHandler(this), this);
         getServer().getPluginManager().registerEvents(new SlimefunHandler(this), this);
@@ -71,12 +71,12 @@ public class Main extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new EntityCollision(this), this);
         getServer().getPluginManager().registerEvents(new GamemodeSpectatorHandler(this), this);
         getServer().getPluginManager().registerEvents(new DummyHandler(this), this);
-        getServer().getPluginManager().registerEvents(this, this);
+        // getServer().getPluginManager().registerEvents(this, this);
 
         getCommand("blacksmithrepair").setExecutor(new BlacksmithCommand(this));
         getCommand("createdummy").setExecutor(new DummyHandler(this));
 
-        getCommand("clearchicken").setExecutor(new ClearChicken(this));
+        getCommand("cleararmorstand").setExecutor(new ClearArmorstand(this));
 
         startStatusUpdateTask();
 
@@ -101,8 +101,8 @@ public class Main extends JavaPlugin implements Listener {
 
         fileManager = new FileManager(this);
 
-        getCommand("rpgquest").setExecutor(this);
-        getCommand("rpgquestcomplete").setExecutor(this);
+//        getCommand("rpgquest").setExecutor(this);
+//        getCommand("rpgquestcomplete").setExecutor(this);
 
         bryzleQuest = new BryzleQuest(this);
         bryzleQuest.setupQuests(); // Initialize available quests

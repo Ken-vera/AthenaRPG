@@ -43,7 +43,7 @@ public class SlimefunHandler implements Listener {
 
                         // Check if the clicked item has lore containing the specified strings
                         if (hasCommonLore(clickedItem) || hasRareLore(clickedItem) || hasEpicLore(clickedItem) ||
-                                hasLegendaryLore(clickedItem) || hasBossDropLore(clickedItem) || hasLimitedLore(clickedItem) || hasDungeonLore(clickedItem)) {
+                                hasLegendaryLore(clickedItem) || hasBossDropLore(clickedItem) || hasLimitedLore(clickedItem) || hasDungeonLore(clickedItem) || hasSpecialLore(clickedItem)) {
                             event.setCancelled(true);
                             player.sendMessage(ChatColor.RED + "You cannot move this item into the GUI!");
                         }
@@ -70,7 +70,7 @@ public class SlimefunHandler implements Listener {
 
             // Check if the clicked item has lore containing the specified strings
             if (hasCommonLore(clickedItem) || hasRareLore(clickedItem) || hasEpicLore(clickedItem) ||
-                    hasLegendaryLore(clickedItem) || hasBossDropLore(clickedItem) || hasLimitedLore(clickedItem) || hasDungeonLore(clickedItem)) {
+                    hasLegendaryLore(clickedItem) || hasBossDropLore(clickedItem) || hasLimitedLore(clickedItem) || hasDungeonLore(clickedItem) || hasSpecialLore(clickedItem)) {
                 event.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "You cannot interact with this item!");
 
@@ -124,6 +124,10 @@ public class SlimefunHandler implements Listener {
 
     private boolean hasDungeonLore(ItemStack item) {
         return hasLoreContaining(item, "DUNGEON");
+    }
+
+    private boolean hasSpecialLore(ItemStack item) {
+        return hasLoreContaining(item, "SPECIAL");
     }
 
     private boolean hasLoreContaining(ItemStack item, String lore) {
