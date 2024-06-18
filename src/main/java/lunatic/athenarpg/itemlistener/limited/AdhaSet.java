@@ -119,13 +119,13 @@ public class AdhaSet implements Listener {
             Player player = (Player) event.getDamager();
             LivingEntity target = (LivingEntity) event.getEntity();
             ItemStack leggings = player.getInventory().getLeggings();
-            //spawnParticle(player, player.getLocation());
 
             if (plugin.getMmoItemsHook().isMMOItem(leggings)) {
                 if (plugin.getMmoItemsHook().getMMOItemId(leggings).matches(leggingsPattern)) {
                     if (!cooldownManager.isOnCooldown(player.getName(), plugin.getMmoItemsHook().getMMOItemName(leggings))) {
                         if (Math.random() < 0.15) {
                             Bukkit.getScheduler().runTask(plugin, () -> {
+                                spawnParticle(player, player.getLocation());
                                 Location playerLoc = player.getLocation();
                                 Location targetLoc = target.getLocation();
 
