@@ -1,15 +1,45 @@
 package lunatic.athenarpg.itemlistener.utils;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class CooldownManager {
 
     private HashMap<String, HashMap<String, Long>> cooldowns;
+    private Cache<String, Cache<String, Long>> activeSkill;
 
     public CooldownManager() {
         cooldowns = new HashMap<>();
+        activeSkill = Caffeine.newBuilder().build();
+    }
+
+    public void setActiveSkill(String playerName, String RPGName, long cooldownInSeconds) {
+        Cache<String, Long> activeSkillMap = Caffeine.newBuilder()
+                .expireAfterWrite(cooldownInSeconds, TimeUnit.SECONDS)
+                .build();
+        activeSkillMap.put(playerName, System.currentTimeMillis());
+        activeSkill.put(RPGName, activeSkillMap);
+    }
+
+    public void clearActiveSkill(String playerName, String RPGName) {
+        Cache<String, Long> activeSkillMap = activeSkill.getIfPresent(playerName);
+        if (activeSkillMap != null) {
+            activeSkill.invalidate(RPGName);
+        }
+    }
+
+    public boolean isSkillActive(String playerName, String RPGName) {
+        Cache<String, Long> activeSkillMap = activeSkill.getIfPresent(playerName);
+        return activeSkillMap != null && activeSkillMap.getIfPresent(RPGName) > System.currentTimeMillis();
+    }
+
+    public void sendSkillStatus(Player player, String RPGSkill) {
+        player.sendMessage("§c" + RPGSkill + " §6is active!");
     }
 
     public void setCooldown(String playerName, String RPGName, long cooldownInSeconds) {

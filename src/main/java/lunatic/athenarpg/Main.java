@@ -10,6 +10,8 @@ import lunatic.athenarpg.db.Database;
 import lunatic.athenarpg.dungeondrops.DropListener;
 import lunatic.athenarpg.handler.*;
 import lunatic.athenarpg.itemlistener.dungeon.pve.PlayerStandHigh;
+import lunatic.athenarpg.itemlistener.limited.AdhaSet;
+import lunatic.athenarpg.itemlistener.utils.MMOItemsHook;
 import lunatic.athenarpg.itemlistener.utils.RPGListenerRegister;
 import lunatic.athenarpg.quest.BryzleQuest;
 import lunatic.athenarpg.reward.BoxOpenListener;
@@ -47,6 +49,7 @@ public class Main extends JavaPlugin implements Listener {
     private FileManager playerDataFileManager;
     private FileConfiguration config;
     public FileManager fileManager;
+    public MMOItemsHook mmoItemsHook;
 
     public List<ArmorStand> armorStandList;
     public List<Entity> entityList;
@@ -71,6 +74,7 @@ public class Main extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new EntityCollision(this), this);
         getServer().getPluginManager().registerEvents(new GamemodeSpectatorHandler(this), this);
         getServer().getPluginManager().registerEvents(new DummyHandler(this), this);
+        getServer().getPluginManager().registerEvents(new AdhaSet(this), this);
         // getServer().getPluginManager().registerEvents(this, this);
 
         getCommand("blacksmithrepair").setExecutor(new BlacksmithCommand(this));
@@ -80,11 +84,11 @@ public class Main extends JavaPlugin implements Listener {
 
         startStatusUpdateTask();
 
-        if (!setupEconomy()) {
-            getLogger().severe("Vault not found! Disabling plugin...");
-            getServer().getPluginManager().disablePlugin(this);
-            return;
-        }
+//        if (!setupEconomy()) {
+//            getLogger().severe("Vault not found! Disabling plugin...");
+//            getServer().getPluginManager().disablePlugin(this);
+//            return;
+//        }
 
         saveDefaultConfig();
         this.config = getConfig();
@@ -100,6 +104,8 @@ public class Main extends JavaPlugin implements Listener {
         rpgRegister.registerRPGEventListener();
 
         fileManager = new FileManager(this);
+
+        mmoItemsHook = new MMOItemsHook();
 
 //        getCommand("rpgquest").setExecutor(this);
 //        getCommand("rpgquestcomplete").setExecutor(this);
@@ -140,14 +146,16 @@ public class Main extends JavaPlugin implements Listener {
     }
     @Override
     public void onDisable(){
-        for (ArmorStand armorStand : armorStandList) {
-            armorStand.remove();
-        }
-        armorStandList.clear();
-        for (Entity entity : entityList) {
-            entity.remove();
-        }
-        entityList.clear();
+//        if (!armorStandList.isEmpty()) {
+//            for (ArmorStand armorStand : armorStandList) {
+//                armorStand.remove();
+//            }
+//            armorStandList.clear();
+//        }
+//        for (Entity entity : entityList) {
+//            entity.remove();
+//        }
+//        entityList.clear();
     }
 
     @EventHandler
@@ -527,5 +535,9 @@ public class Main extends JavaPlugin implements Listener {
         }
 
         return null;
+    }
+
+    public MMOItemsHook getMmoItemsHook() {
+        return mmoItemsHook;
     }
 }

@@ -3,6 +3,8 @@
     <output-path>$PROJECT_DIR$/../localhost/plugins</output-path>
     <root id="archive" name="AthenaRPG.jar">
       <element id="module-output" name="AthenaRPG" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/mojang/authlib/6.0.52/authlib-6.0.52.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/github/MilkBowl/VaultAPI/1.7/VaultAPI-1.7.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>
