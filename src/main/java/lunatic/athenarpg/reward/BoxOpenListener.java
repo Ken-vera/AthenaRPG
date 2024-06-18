@@ -42,7 +42,9 @@ public class BoxOpenListener implements Listener {
             "UNIDENTIFIED_14",
             "HEAVY_ICE",
             "WATER_ESSENCE",
-            "FIRE_POWDER"
+            "FIRE_POWDER",
+            "PANDORA_SCRAP",
+            "ECLIPSE_EYE"
     );
 
     public List<String> LEGENDARY_REWARD = Arrays.asList(

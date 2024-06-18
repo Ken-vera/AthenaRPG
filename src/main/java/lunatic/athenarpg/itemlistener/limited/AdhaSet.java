@@ -119,7 +119,7 @@ public class AdhaSet implements Listener {
             Player player = (Player) event.getDamager();
             LivingEntity target = (LivingEntity) event.getEntity();
             ItemStack leggings = player.getInventory().getLeggings();
-            spawnParticle(player, player.getLocation());
+            //spawnParticle(player, player.getLocation());
 
             if (plugin.getMmoItemsHook().isMMOItem(leggings)) {
                 if (plugin.getMmoItemsHook().getMMOItemId(leggings).matches(leggingsPattern)) {

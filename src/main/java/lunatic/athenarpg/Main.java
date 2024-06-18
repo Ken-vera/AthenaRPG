@@ -74,7 +74,7 @@ public class Main extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new EntityCollision(this), this);
         getServer().getPluginManager().registerEvents(new GamemodeSpectatorHandler(this), this);
         getServer().getPluginManager().registerEvents(new DummyHandler(this), this);
-        getServer().getPluginManager().registerEvents(new AdhaSet(this), this);
+
         // getServer().getPluginManager().registerEvents(this, this);
 
         getCommand("blacksmithrepair").setExecutor(new BlacksmithCommand(this));

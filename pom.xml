@@ -74,6 +74,11 @@
             <name>Lumine Releases</name>
             <url>https://mvn.lumine.io/repository/maven-public/</url>
         </repository>
+        <repository>
+            <id>paper-repo</id>
+            <url>https://papermc.io/repo/repository/maven-public/</url>
+        </repository>
+
     </repositories>
 
     <dependencies>
@@ -116,12 +121,7 @@
         <dependency>
             <groupId>com.mojang</groupId>
             <artifactId>authlib</artifactId>
-            <version>6.0.52</version>
-        </dependency>
-        <dependency>
-            <groupId>com.codingforcookies</groupId>
-            <artifactId>ArmorEquipEvent</artifactId>
-            <version>1.7.6-SNAPSHOT</version>
+            <version>1.5.21</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

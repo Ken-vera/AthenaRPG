@@ -7,7 +7,9 @@ import lunatic.athenarpg.itemlistener.common.Taser;
 import lunatic.athenarpg.itemlistener.dungeon.*;
 import lunatic.athenarpg.itemlistener.dungeon.pvp.DiamondSetListener;
 import lunatic.athenarpg.itemlistener.epic.Crusader;
+import lunatic.athenarpg.itemlistener.epic.EclipseShroud;
 import lunatic.athenarpg.itemlistener.epic.ElementalistBlade;
+import lunatic.athenarpg.itemlistener.epic.PandoraBow;
 import lunatic.athenarpg.itemlistener.legendary.*;
 import lunatic.athenarpg.itemlistener.limited.*;
 import lunatic.athenarpg.itemlistener.rare.AncestralBook;
@@ -33,6 +35,8 @@ public class RPGListenerRegister {
         // EPIC
         plugin.getServer().getPluginManager().registerEvents(new Crusader(plugin), plugin);
         plugin.getServer().getPluginManager().registerEvents(new ElementalistBlade(plugin), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new EclipseShroud(plugin), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new PandoraBow(plugin), plugin);
         // LEGENDARY
         plugin.getServer().getPluginManager().registerEvents(new SwiftnessBoots(plugin), plugin);
         plugin.getServer().getPluginManager().registerEvents(new PharaohArmor(plugin), plugin);
@@ -57,6 +61,7 @@ public class RPGListenerRegister {
         plugin.getServer().getPluginManager().registerEvents(new EldritchChronomancy(plugin), plugin);
         plugin.getServer().getPluginManager().registerEvents(new RamadhanSet(plugin), plugin);
         plugin.getServer().getPluginManager().registerEvents(new StarvingOrb(plugin), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new AdhaSet(plugin), plugin);
 
         // DISABLE DIAMOND ARMOR PVP DUNGEON
         plugin.getServer().getPluginManager().registerEvents(new DiamondSetListener(plugin), plugin);

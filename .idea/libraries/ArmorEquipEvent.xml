@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="Jobs5.2.2.2">
+  <library name="ArmorEquipEvent">
     <CLASSES>
-      <root url="jar://$USER_HOME$/Downloads/Jobs5.2.2.2.jar!/" />
+      <root url="jar://E:/pluginlib/ArmorEquipEvent.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
